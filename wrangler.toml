@@ -8,5 +8,3 @@ compatibility_date = "2024-12-18"
 # ALPACA_KEY_ID = (Your Alpaca key)
 # ALPACA_SECRET_KEY = (Your Alpaca secret)
 # ALPACA_PAPER_TRADING = "true"
-# EVOLUTION_GLOBAL_API_KEY = (Your Evolution account master key)
-# EVOLUTION_INSTANCE_NAME = (The name of your WhatsApp profile instance)       
