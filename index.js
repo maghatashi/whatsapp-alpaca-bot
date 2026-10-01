@@ -15,7 +15,6 @@ export default {
       const challenge = url.searchParams.get("hub.challenge");
 
       if (mode === "subscribe" && token === verifyToken) {
-        // 🔥 THE FIX: Force the response to be strict, raw plain text with no wrappers
         return new Response(challenge, { 
           status: 200,
           headers: { "Content-Type": "text/plain" } 
@@ -29,17 +28,19 @@ export default {
       try {
         const payload = await request.json();
         
-        // Extract the inward text object from the incoming Meta JSON pattern
-        const messageObj = payload.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+        // Safely extract the first entry and change object from Meta's payload structure
+        const changes = payload.entry?.[0]?.changes?.[0]?.value;
+        const messageObj = changes?.messages?.[0];
+        
         if (!messageObj) {
-          return new Response("OK", { status: 200 }); // Ignore status delivery receipts
+          return new Response("OK", { status: 200 }); // Ignore delivery receipts
         }
 
         const fromNumber = messageObj.from; 
         const userText = messageObj.text?.body || "";
 
-        // 🔥 IMMEDIATE RESPONSE CRITICAL: 
-        // We reply HTTP 200 OK instantly so Meta doesn't flag a timeout and send duplicate messages.
+        // 🔥 IMMEDIATE ACKNOWLEDGEMENT:
+        // Reply HTTP 200 OK instantly to Meta so it doesn't cause a duplication loop.
         ctx.waitUntil(handleStateEngine(fromNumber, userText, env));
         return new Response("OK", { status: 200 });
 
@@ -59,7 +60,7 @@ export default {
  * Replaces BuilderBot flow managers using Cloudflare KV storage
  */
 async function handleStateEngine(phone, text, env) {
-  // 1. Fetch friend state sequence from Cloudflare KV Namespace
+  // Fetch user state history from Cloudflare KV Namespace
   let session = await env.USER_SESSIONS.get(phone, { type: "json" });
   if (!session) {
     session = { step: "IDLE", name: "", age: "" };
@@ -67,17 +68,15 @@ async function handleStateEngine(phone, text, env) {
 
   const cleanText = text.toUpperCase().trim();
 
-  // 2. Dynamic Dialogue Step Engine
+  // Dynamic Dialog State Machine
   switch (session.step) {
     
     case "IDLE":
-      // Check for structural text lookup codes first (e.g., "check AAPL" or "price NVDA")
       if (cleanText.startsWith("CHECK ") || cleanText.startsWith("PRICE ")) {
         const parts = cleanText.split(" ");
         const ticker = parts[1];
         await executeAlpacaLookup(phone, ticker, env);
       } 
-      // Main interactive flow matching your original setup
       else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
         await sendWhatsApp(phone, "🙌 Hello welcome to this *Chatbot*!\n\n👉 Text *register* to save your profile.\n👉 Text *check [TICKER]* (e.g., *check NVDA*) to check stock data.", env);
       } 
@@ -92,7 +91,7 @@ async function handleStateEngine(phone, text, env) {
       break;
 
     case "AWAITING_NAME":
-      session.name = text; // Retain standard casing for formatting
+      session.name = text; // Retain case layout for presentation formatting
       session.step = "AWAITING_AGE";
       await env.USER_SESSIONS.put(phone, JSON.stringify(session));
       await sendWhatsApp(phone, `Thanks ${text}! Now, what is your age?`, env);
@@ -100,7 +99,7 @@ async function handleStateEngine(phone, text, env) {
 
     case "AWAITING_AGE":
       session.age = text;
-      session.step = "IDLE"; // Terminate form and push user back to baseline routing
+      session.step = "IDLE"; // Terminate dialog interaction flow
       await env.USER_SESSIONS.put(phone, JSON.stringify(session));
       await sendWhatsApp(phone, `✅ *Profile Information Compiled!*\n\n👤 Name: ${session.name}\n🎂 Age: ${session.age}\n\nYou can now query the market anytime using *check [TICKER]*.`, env);
       break;
@@ -117,10 +116,9 @@ async function executeAlpacaLookup(phone, ticker, env) {
   }
 
   try {
-    // Acknowledge processing status immediately to keep the chat feeling responsive
     await sendWhatsApp(phone, `🔍 Pulling real-time records for *${ticker}* via Alpaca feeds...`, env);
 
-    // 1. Access live baseline stock quote parameters
+    // 1. Fetch live stock quotes from Alpaca Data API
     const stockResponse = await fetch(`https://alpaca.markets{ticker}/quotes/latest`, {
       headers: {
         'APCA-API-KEY-ID': env.ALPACA_KEY_ID,
@@ -131,12 +129,12 @@ async function executeAlpacaLookup(phone, ticker, env) {
     const stockData = await stockResponse.json();
     const currentPrice = stockData?.quote?.bp || "Unavailable"; // Extracts Bid Price
 
-    // 2. Identify environment path parameters for tracking Options listings
+    // 2. Adjust core base routing based on paper vs live trade configurations
     const apiBase = env.ALPACA_PAPER_TRADING === "true" 
       ? "https://alpaca.markets" 
       : "https://alpaca.markets";
 
-    // 3. Request active Call Option structures matching underlying asset parameters
+    // 3. Request active Call Option lists matching target underlying symbol metrics
     const optionResponse = await fetch(`${apiBase}/v2/options/contracts?underlying_symbols=${ticker}&status=active&type=call&limit=3`, {
       headers: {
         'APCA-API-KEY-ID': env.ALPACA_KEY_ID,
@@ -147,7 +145,7 @@ async function executeAlpacaLookup(phone, ticker, env) {
     const optionData = await optionResponse.json();
     const contracts = optionData?.option_contracts || [];
 
-    // 4. Construct structural message output layout optimized for mobile screens
+    // 4. Construct visual layout format output optimized for mobile screens
     let replyMessage = `📈 *${ticker} Market Update*\n💵 Stock Bid Price: *$${currentPrice}*\n\n`;
     
     if (contracts.length === 0) {
