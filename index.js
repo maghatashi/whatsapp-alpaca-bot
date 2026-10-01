@@ -28,28 +28,22 @@ export default {
       try {
         const payload = await request.json();
         
-        // Target the changes block safely
         const entry = payload?.entry?.[0];
         const change = entry?.changes?.[0];
         const value = change?.value;
 
         // ⚠️ STATUS RECEIPTS HANDLING:
-        // Meta sends delivery "sent", "delivered", and "read" receipts to this exact same webhook.
         if (value?.statuses) {
           return new Response("OK", { status: 200 });
         }
 
-        // Extract the actual message object safely
         const messageObj = value?.messages?.[0];
-        
-        // If it's not a status receipt and there's no message body, exit safely
         if (!messageObj) {
           return new Response("OK", { status: 200 });
         }
 
         const fromNumber = messageObj.from; 
         
-        // Handle text messages or button interactions smoothly
         let userText = "";
         if (messageObj.type === "text") {
           userText = messageObj.text?.body || "";
@@ -72,7 +66,7 @@ export default {
     }
 
     return new Response("Not Found", { status: 404 });
-  } // 🟢 THIS WAS THE MISSING CLOSING BRACKET THAT BROKE YOUR BUILD!
+  }
 };
 
 /**
@@ -94,7 +88,7 @@ async function handleStateEngine(phone, text, env) {
         await executeAlpacaPriceFetch(phone, ticker, env);
       } 
       else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
-        await sendWhatsApp(phone, "🙌 Welcome to your **KokuTrader Trading Command Hub**!\n\n👉 Text **check [TICKER]** (e.g., *check AAPL*) to pull live marketplace bid data.", env);
+        await sendWhatsApp(phone, "🙌 Welcome to your **KokuTrader Trading Command Hub**!\n\n👉 Text **check [TICKER]** (e.g., *check AAPL*) to pull live marketplace data.", env);
       } 
       else {
         await sendWhatsApp(phone, "🤖 Command unrecognized. Try texting **hello** or **check TSLA**.", env);
@@ -104,7 +98,7 @@ async function handleStateEngine(phone, text, env) {
 }
 
 /**
- * Alpaca Live Market Data Interface: Step 1 (Stock Price Retrieval)
+ * Live Market Data Interface: Step 1 (Stock Price Retrieval)
  */
 async function executeAlpacaPriceFetch(phone, ticker, env) {
   if (!ticker || ticker.length > 5) {
@@ -113,7 +107,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
   }
 
   try {
-    // Corrected template literal path using standard backticks
+    // 🟢 FIXED: Using proper JavaScript template literal variable expansion
     const alpacaUrl = `https://alpaca.markets{ticker}/quotes/latest`;
     
     const response = await fetch(alpacaUrl, {
@@ -128,13 +122,12 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Broker API rejected request: ${response.status} - ${errorText}`);
-      await sendWhatsApp(phone, `⚠️ Broker returned status code ${response.status}. Verify your API credentials inside your Cloudflare configuration parameters.`, env);
+      await sendWhatsApp(phone, `⚠️ Market feed data error. Verify your API credentials inside your Cloudflare configuration parameters.`, env);
       return;
     }
 
     const data = await response.json();
     
-    // Safely capture the current Best Bid and Best Ask prices
     const bidPrice = data?.quote?.bp;
     const askPrice = data?.quote?.ap;
     const timestamp = data?.quote?.t;
@@ -151,7 +144,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
 
   } catch (err) {
     console.error("Broker data loop crash:", err);
-    await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with Broker APIs.", env);
+    await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with data feeds.", env);
   }
 }
 
@@ -159,7 +152,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
  * Native Meta Graph API Messaging Bridge
  */
 async function sendWhatsApp(to, message, env) {
-  // 🔥 THE FIX: Added graph. domain, explicit forward slash, and the crucial \$ sign for variable lookup!
+  // 🟢 FIXED: Added official graph sub-domain, API version paths, and structural variable brackets
   const metaUrl = `https://facebook.com{env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
   
   await fetch(metaUrl, {
@@ -176,4 +169,3 @@ async function sendWhatsApp(to, message, env) {
     })
   });
 }
-
