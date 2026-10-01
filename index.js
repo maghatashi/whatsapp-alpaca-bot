@@ -55,7 +55,7 @@ export default {
  * State Router & Core Logic Controller
  * Replaces BuilderBot flow managers using Cloudflare KV storage
  */
-async handleStateEngine(phone, text, env) {
+async function handleStateEngine(phone, text, env) {
   // 1. Fetch friend state sequence from Cloudflare KV Namespace
   let session = await env.USER_SESSIONS.get(phone, { type: "json" });
   if (!session) {
@@ -107,7 +107,7 @@ async handleStateEngine(phone, text, env) {
 /**
  * Alpaca Live Market Data Interface Core Loop
  */
-async executeAlpacaLookup(phone, ticker, env) {
+async function executeAlpacaLookup(phone, ticker, env) {
   if (!ticker || ticker.length > 5) {
     await sendWhatsApp(phone, "❌ Asset code format invalid. Use: *check TSLA*", env);
     return;
@@ -167,7 +167,7 @@ async executeAlpacaLookup(phone, ticker, env) {
 /**
  * Native Meta Graph API Messenger Pipeline
  */
-async sendWhatsApp(to, message, env) {
+async function sendWhatsApp(to, message, env) {
   const metaUrl = `https://facebook.com{env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
   
   await fetch(metaUrl, {
