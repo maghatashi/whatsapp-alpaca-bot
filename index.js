@@ -1,9 +1,12 @@
 /**
  * WhatsApp KokuTrader Trading Bot Engine
- * Phase 1: Live Stock Price Fetch Check
+ * Phase 2: Stock quote + call option prices (bid / ask / last)
  */
 
 const GRAPH_API_VERSION = "v21.0";
+const MAX_DAYS_OUT = 30;     // look for expirations within this many days
+const STRIKE_BAND = 0.08;    // strikes within +/-8% of the stock price
+const STRIKES_TO_SHOW = 5;   // strikes closest to the stock price
 
 export default {
   async fetch(request, env, ctx) {
@@ -28,35 +31,22 @@ export default {
     if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
+        const value = payload?.entry?.[0]?.changes?.[0]?.value;
 
-        const entry = payload?.entry?.[0];
-        const change = entry?.changes?.[0];
-        const value = change?.value;
-
-        // STATUS RECEIPTS HANDLING
-        if (value?.statuses) {
-          return new Response("OK", { status: 200 });
-        }
+        if (value?.statuses) return new Response("OK", { status: 200 });
 
         const messageObj = value?.messages?.[0];
-        if (!messageObj) {
-          return new Response("OK", { status: 200 });
-        }
+        if (!messageObj) return new Response("OK", { status: 200 });
 
         const fromNumber = messageObj.from;
         let userText = "";
-
         if (messageObj.type === "text") {
           userText = messageObj.text?.body || "";
         } else if (messageObj.type === "button") {
           userText = messageObj.button?.text || "";
         }
+        if (!userText) return new Response("OK", { status: 200 });
 
-        if (!userText) {
-          return new Response("OK", { status: 200 });
-        }
-
-        // Errors inside waitUntil are otherwise silent, so catch and log them
         ctx.waitUntil(
           handleStateEngine(fromNumber, userText, env).catch((err) => {
             console.error("handleStateEngine failed:", err?.stack || err);
@@ -82,27 +72,22 @@ async function handleStateEngine(phone, text, env) {
   try {
     if (env.USER_SESSIONS) {
       session = await env.USER_SESSIONS.get(phone, { type: "json" });
-    } else {
-      console.error("USER_SESSIONS KV binding is missing. Using default session.");
     }
   } catch (err) {
     console.error("KV read failed:", err);
   }
-  if (!session) {
-    session = { step: "IDLE", name: "", age: "" };
-  }
+  if (!session) session = { step: "IDLE", name: "", age: "" };
 
   const cleanText = text.toUpperCase().trim();
 
   switch (session.step) {
     case "IDLE":
       if (cleanText.startsWith("CHECK ") || cleanText.startsWith("PRICE ")) {
-        const parts = cleanText.split(/\s+/);
-        const ticker = parts[1];
-        await executeAlpacaPriceFetch(phone, ticker, env);
+        const ticker = cleanText.split(/\s+/)[1];
+        await executeMarketLookup(phone, ticker, env);
       }
       else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
-        await sendWhatsApp(phone, "🙌 Welcome to your *KokuTrader Trading Command Hub*!\n\n👉 Text *check [TICKER]* (e.g., _check AAPL_) to pull live marketplace data.", env);
+        await sendWhatsApp(phone, "🙌 Welcome to your *KokuTrader Trading Command Hub*!\n\n👉 Text *check [TICKER]* (e.g., _check NVDA_) for the stock quote and nearby call option prices.", env);
       }
       else {
         await sendWhatsApp(phone, "🤖 Command unrecognized. Try texting *hello* or *check TSLA*.", env);
@@ -112,51 +97,133 @@ async function handleStateEngine(phone, text, env) {
 }
 
 /**
- * Live Market Data Interface: Step 1 (Stock Price Retrieval)
+ * Alpaca helper
  */
-async function executeAlpacaPriceFetch(phone, ticker, env) {
+function alpacaHeaders(env) {
+  return {
+    "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
+    "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
+    "Accept": "application/json"
+  };
+}
+
+function fmt(n) {
+  return typeof n === "number" && n > 0 ? n.toFixed(2) : "-";
+}
+
+// OCC symbol, e.g. AAPL261016C00250000 -> { expiry: "2026-10-16", strike: 250 }
+function parseOcc(symbol) {
+  const m = /^(.+?)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/.exec(symbol);
+  if (!m) return null;
+  return {
+    expiry: `20${m[2]}-${m[3]}-${m[4]}`,
+    type: m[5],
+    strike: parseInt(m[6], 10) / 1000
+  };
+}
+
+/**
+ * Stock quote + call option prices
+ */
+async function executeMarketLookup(phone, ticker, env) {
   if (!ticker || ticker.length > 5) {
     await sendWhatsApp(phone, "❌ Asset code format invalid. Try: _check AAPL_", env);
     return;
   }
 
   try {
-    // feed=iex works on free Alpaca data plans; remove it if you have a paid SIP subscription
-    const alpacaUrl = "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) + "/quotes/latest?feed=iex";
+    // 1. Underlying stock quote (free IEX feed)
+    const stockRes = await fetch(
+      "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) + "/quotes/latest?feed=iex",
+      { headers: alpacaHeaders(env) }
+    );
 
-    const response = await fetch(alpacaUrl, {
-      method: "GET",
-      headers: {
-        "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
-        "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
-        "Accept": "application/json"
-      }
+    if (!stockRes.ok) {
+      console.error("Alpaca stock error:", stockRes.status, await stockRes.text());
+      await sendWhatsApp(phone, "⚠️ Market feed data error. Verify your API credentials.", env);
+      return;
+    }
+
+    const stockData = await stockRes.json();
+    const bid = stockData?.quote?.bp || 0;
+    const ask = stockData?.quote?.ap || 0;
+    const spot = bid && ask ? (bid + ask) / 2 : (ask || bid);
+
+    if (!spot) {
+      await sendWhatsApp(phone, `⚠️ Asset symbol *${ticker}* returned empty data. Confirm the ticker exists.`, env);
+      return;
+    }
+
+    let msg = `📈 *${ticker}* ${fmt(bid)} / ${fmt(ask)}\n\n`;
+
+    // 2. Call option snapshots (include bid, ask, last trade, IV)
+    const today = new Date();
+    const end = new Date(today.getTime() + MAX_DAYS_OUT * 86400000);
+    const iso = (d) => d.toISOString().slice(0, 10);
+
+    const params = new URLSearchParams({
+      type: "call",
+      feed: env.ALPACA_OPTIONS_FEED || "indicative", // "opra" needs the paid options data plan
+      expiration_date_gte: iso(today),
+      expiration_date_lte: iso(end),
+      strike_price_gte: (spot * (1 - STRIKE_BAND)).toFixed(2),
+      strike_price_lte: (spot * (1 + STRIKE_BAND)).toFixed(2),
+      limit: "1000"
     });
 
-    if (!response.ok) {
-      console.error("Alpaca error:", response.status, await response.text());
-      await sendWhatsApp(phone, "⚠️ Market feed data error. Verify your API credentials inside your configuration parameters.", env);
+    const optRes = await fetch(
+      "https://data.alpaca.markets/v1beta1/options/snapshots/" + encodeURIComponent(ticker) + "?" + params,
+      { headers: alpacaHeaders(env) }
+    );
+
+    if (!optRes.ok) {
+      console.error("Alpaca options error:", optRes.status, await optRes.text());
+      msg += "⚠️ Option prices unavailable right now.";
+      await sendWhatsApp(phone, msg, env);
       return;
     }
 
-    const data = await response.json();
-    const bidPrice = data?.quote?.bp;
-    const askPrice = data?.quote?.ap;
-    const timestamp = data?.quote?.t;
+    const optData = await optRes.json();
+    const rows = Object.entries(optData?.snapshots || {})
+      .map(([symbol, snap]) => {
+        const occ = parseOcc(symbol);
+        if (!occ) return null;
+        return {
+          ...occ,
+          bid: snap?.latestQuote?.bp,
+          ask: snap?.latestQuote?.ap,
+          last: snap?.latestTrade?.p,
+          iv: snap?.impliedVolatility
+        };
+      })
+      .filter(Boolean);
 
-    if (!bidPrice || bidPrice === 0) {
-      await sendWhatsApp(phone, `⚠️ Asset symbol *${ticker}* data returned empty parameters. Confirm that the marketplace token exists.`, env);
+    if (rows.length === 0) {
+      msg += "⚠️ No call options found near the current price in the next " + MAX_DAYS_OUT + " days.";
+      await sendWhatsApp(phone, msg, env);
       return;
     }
 
-    const visualTime = timestamp ? new Date(timestamp).toLocaleTimeString() : "Now";
-    const feedback = `📈 *${ticker} Real-Time Quote*\n\n💵 *Bid Price:* $${bidPrice}\n💵 *Ask Price:* $${askPrice}\n🕒 *Feed Time:* ${visualTime}\n\n🟢 _Connection Successful! Ready for Phase 2: Call Options prices._`;
+    // Nearest expiration, then the strikes closest to the stock price
+    const nearestExpiry = rows.map((r) => r.expiry).sort()[0];
+    const picks = rows
+      .filter((r) => r.expiry === nearestExpiry)
+      .sort((a, b) => Math.abs(a.strike - spot) - Math.abs(b.strike - spot))
+      .slice(0, STRIKES_TO_SHOW)
+      .sort((a, b) => a.strike - b.strike);
 
-    await sendWhatsApp(phone, feedback, env);
+    msg += `🔔 *Calls expiring ${nearestExpiry}*\n`;
+    for (const p of picks) {
+      const iv = typeof p.iv === "number" ? ` | IV ${(p.iv * 100).toFixed(0)}%` : "";
+      msg += `\n• *$${p.strike}* Bid ${fmt(p.bid)} | Ask ${fmt(p.ask)} | Last ${fmt(p.last)}${iv}`;
+    }
+
+    msg += "\n\n_Indicative prices may differ from live exchange quotes._";
+    await sendWhatsApp(phone, msg, env);
 
   } catch (err) {
-    console.error("Alpaca fetch exception:", err);
-    await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with data feeds.", env);
+    console.error("Market lookup exception:", err);
+    await sendWhatsApp(phone, "⚠️ Connection error while fetching market data.", env);
   }
 }
 
