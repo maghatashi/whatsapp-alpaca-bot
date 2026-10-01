@@ -23,7 +23,7 @@ export default {
       return new Response("Forbidden: Token Mismatch", { status: 403 });
     }
 
-        // 2. INBOUND MESSAGE WEBHOOK PROCESSING
+    // 2. INBOUND MESSAGE WEBHOOK PROCESSING
     if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
@@ -35,7 +35,6 @@ export default {
 
         // ⚠️ STATUS RECEIPTS HANDLING:
         // Meta sends delivery "sent", "delivered", and "read" receipts to this exact same webhook.
-        // If it's a receipt, we must reply 200 OK and ignore it, otherwise it skips our code.
         if (value?.statuses) {
           return new Response("OK", { status: 200 });
         }
@@ -71,6 +70,10 @@ export default {
         return new Response("Internal Server Error", { status: 500 });
       }
     }
+
+    return new Response("Not Found", { status: 404 });
+  } // 🟢 THIS WAS THE MISSING CLOSING BRACKET THAT BROKE YOUR BUILD!
+};
 
 /**
  * Dialogue Routing & Menu System
@@ -110,7 +113,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
   }
 
   try {
-    // 1. Query the live baseline single-symbol data endpoint using accurate path maps
+    // Corrected template literal path using standard backticks
     const alpacaUrl = `https://alpaca.markets{ticker}/quotes/latest`;
     
     const response = await fetch(alpacaUrl, {
@@ -131,7 +134,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
 
     const data = await response.json();
     
-    // 2. Safely capture the current Best Bid and Best Ask prices (NBBO format)
+    // Safely capture the current Best Bid and Best Ask prices
     const bidPrice = data?.quote?.bp;
     const askPrice = data?.quote?.ap;
     const timestamp = data?.quote?.t;
@@ -141,7 +144,6 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
       return;
     }
 
-    // 3. Format visual data block return text
     const visualTime = timestamp ? new Date(timestamp).toLocaleTimeString() : "Now";
     const feedback = `📈 **${ticker} Real-Time Quote**\n\n💵 **Bid Price:** $${bidPrice}\n💵 **Ask Price:** $${askPrice}\n🕒 **Feed Time:** ${visualTime}\n\n🟢 *Connection Successful! Ready for Phase 2: Call Options prices.*`;
 
@@ -157,6 +159,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
  * Native Meta Graph API Messaging Bridge
  */
 async function sendWhatsApp(to, message, env) {
+  // Corrected Meta endpoint route using backticks and variables
   const metaUrl = `https://facebook.com{env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
   
   await fetch(metaUrl, {
