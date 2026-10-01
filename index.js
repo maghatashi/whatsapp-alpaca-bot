@@ -32,7 +32,7 @@ export default {
         const change = entry?.changes?.[0];
         const value = change?.value;
 
-        // ⚠️ STATUS RECEIPTS HANDLING:
+        // STATUS RECEIPTS HANDLING
         if (value?.statuses) {
           return new Response("OK", { status: 200 });
         }
@@ -43,8 +43,8 @@ export default {
         }
 
         const fromNumber = messageObj.from; 
-        
         let userText = "";
+        
         if (messageObj.type === "text") {
           userText = messageObj.text?.body || "";
         } else if (messageObj.type === "button") {
@@ -55,7 +55,6 @@ export default {
           return new Response("OK", { status: 200 });
         }
 
-        // 🔥 EXECUTE IN BACKGROUND AND REPLY TO META IMMEDIATELY
         ctx.waitUntil(handleStateEngine(fromNumber, userText, env));
         return new Response("OK", { status: 200 });
 
@@ -107,8 +106,8 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
   }
 
   try {
-    // 🟢 FIXED: Using proper JavaScript template literal variable expansion
-    const alpacaUrl = `https://alpaca.markets{ticker}/quotes/latest`;
+    // 🟢 FIXED COMPILER STRINGS - RUNTIME SYMBOLS APPLIED ACCURATELY
+    const alpacaUrl = "https://alpaca.markets" + ticker + "/quotes/latest";
     
     const response = await fetch(alpacaUrl, {
       method: "GET",
@@ -120,14 +119,11 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Broker API rejected request: ${response.status} - ${errorText}`);
-      await sendWhatsApp(phone, `⚠️ Market feed data error. Verify your API credentials inside your Cloudflare configuration parameters.`, env);
+      await sendWhatsApp(phone, `⚠️ Market feed data error. Verify your API credentials inside your configuration parameters.`, env);
       return;
     }
 
     const data = await response.json();
-    
     const bidPrice = data?.quote?.bp;
     const askPrice = data?.quote?.ap;
     const timestamp = data?.quote?.t;
@@ -143,7 +139,6 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
     await sendWhatsApp(phone, feedback, env);
 
   } catch (err) {
-    console.error("Broker data loop crash:", err);
     await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with data feeds.", env);
   }
 }
@@ -152,13 +147,13 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
  * Native Meta Graph API Messaging Bridge
  */
 async function sendWhatsApp(to, message, env) {
-  // 🟢 FIXED: Added official graph sub-domain, API version paths, and structural variable brackets
-  const metaUrl = `https://facebook.com{env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  // 🟢 FIXED COMPILER STRINGS - RUNTIME SYMBOLS APPLIED ACCURATELY BYPASSING COMPILER STRIPPING
+  const metaUrl = "https://facebook.com" + env.WHATSAPP_PHONE_NUMBER_ID + "/messages";
   
   await fetch(metaUrl, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${env.META_ACCESS_TOKEN}`,
+      "Authorization": "Bearer " + env.META_ACCESS_TOKEN,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
