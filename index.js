@@ -14,8 +14,12 @@ export default {
       const token = url.searchParams.get("hub.verify_token");
       const challenge = url.searchParams.get("hub.challenge");
 
-      if (mode && token === verifyToken) {
-        return new Response(challenge, { status: 200 });
+      if (mode === "subscribe" && token === verifyToken) {
+        // 🔥 THE FIX: Force the response to be strict, raw plain text with no wrappers
+        return new Response(challenge, { 
+          status: 200,
+          headers: { "Content-Type": "text/plain" } 
+        });
       }
       return new Response("Forbidden: Token Mismatch", { status: 403 });
     }
