@@ -1,5 +1,5 @@
 /**
- * WhatsApp Alpaca Trading Bot Engine
+ * WhatsApp KokuTrader Trading Bot Engine
  * Phase 1: Live Stock Price Fetch Check
  */
 
@@ -94,7 +94,7 @@ async function handleStateEngine(phone, text, env) {
         await executeAlpacaPriceFetch(phone, ticker, env);
       } 
       else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
-        await sendWhatsApp(phone, "🙌 Welcome to your **Alpaca Trading Command Hub**!\n\n👉 Text **check [TICKER]** (e.g., *check AAPL*) to pull live marketplace bid data.", env);
+        await sendWhatsApp(phone, "🙌 Welcome to your **KokuTrader Trading Command Hub**!\n\n👉 Text **check [TICKER]** (e.g., *check AAPL*) to pull live marketplace bid data.", env);
       } 
       else {
         await sendWhatsApp(phone, "🤖 Command unrecognized. Try texting **hello** or **check TSLA**.", env);
@@ -127,8 +127,8 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Alpaca API rejected request: ${response.status} - ${errorText}`);
-      await sendWhatsApp(phone, `⚠️ Alpaca returned status code ${response.status}. Verify your API credentials inside your Cloudflare configuration parameters.`, env);
+      console.error(`Broker API rejected request: ${response.status} - ${errorText}`);
+      await sendWhatsApp(phone, `⚠️ Broker returned status code ${response.status}. Verify your API credentials inside your Cloudflare configuration parameters.`, env);
       return;
     }
 
@@ -150,8 +150,8 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
     await sendWhatsApp(phone, feedback, env);
 
   } catch (err) {
-    console.error("Alpaca data loop crash:", err);
-    await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with Alpaca APIs.", env);
+    console.error("Broker data loop crash:", err);
+    await sendWhatsApp(phone, "⚠️ Network connection exception while communicating with Broker APIs.", env);
   }
 }
 
