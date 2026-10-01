@@ -23,21 +23,46 @@ export default {
       return new Response("Forbidden: Token Mismatch", { status: 403 });
     }
 
-    // 2. INBOUND MESSAGE WEBHOOK PROCESSING
+        // 2. INBOUND MESSAGE WEBHOOK PROCESSING
     if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
-        const changes = payload.entry?.[0]?.changes?.[0]?.value;
-        const messageObj = changes?.messages?.[0];
         
+        // Target the changes block safely
+        const entry = payload?.entry?.[0];
+        const change = entry?.changes?.[0];
+        const value = change?.value;
+
+        // ⚠️ STATUS RECEIPTS HANDLING:
+        // Meta sends delivery "sent", "delivered", and "read" receipts to this exact same webhook.
+        // If it's a receipt, we must reply 200 OK and ignore it, otherwise it skips our code.
+        if (value?.statuses) {
+          return new Response("OK", { status: 200 });
+        }
+
+        // Extract the actual message object safely
+        const messageObj = value?.messages?.[0];
+        
+        // If it's not a status receipt and there's no message body, exit safely
         if (!messageObj) {
           return new Response("OK", { status: 200 });
         }
 
         const fromNumber = messageObj.from; 
-        const userText = messageObj.text?.body || "";
+        
+        // Handle text messages or button interactions smoothly
+        let userText = "";
+        if (messageObj.type === "text") {
+          userText = messageObj.text?.body || "";
+        } else if (messageObj.type === "button") {
+          userText = messageObj.button?.text || "";
+        }
 
-        // Instantly acknowledge receipt back to Meta
+        if (!userText) {
+          return new Response("OK", { status: 200 });
+        }
+
+        // 🔥 EXECUTE IN BACKGROUND AND REPLY TO META IMMEDIATELY
         ctx.waitUntil(handleStateEngine(fromNumber, userText, env));
         return new Response("OK", { status: 200 });
 
@@ -46,10 +71,6 @@ export default {
         return new Response("Internal Server Error", { status: 500 });
       }
     }
-
-    return new Response("Not Found", { status: 404 });
-  }
-};
 
 /**
  * Dialogue Routing & Menu System
