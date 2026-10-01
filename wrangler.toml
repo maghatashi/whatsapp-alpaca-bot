@@ -17,3 +17,20 @@ ALPACA_PAPER_TRADING = "true"
 [[kv_namespaces]]
 binding = "USER_SESSIONS"
 id = "b7261f8c0f2b4b098d96b5cbf787cf77"
+
+# ...
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
+
+[observability.issue_detection]
+enabled = true
+# ...
+
