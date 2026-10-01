@@ -8,7 +8,7 @@ export default {
     const url = new URL(request.url);
 
     // 1. WHATSAPP WEBHOOK VALIDATION (Required once by Meta when setting up the webhook)
-    if (request.method === "GET" && url.pathname === "/webhook") {
+    if (request.method === "GET" && url.pathname.includes("/webhook")) {
       const verifyToken = env.WHATSAPP_VERIFY_TOKEN;
       const mode = url.searchParams.get("hub.mode");
       const token = url.searchParams.get("hub.verify_token");
@@ -17,11 +17,11 @@ export default {
       if (mode && token === verifyToken) {
         return new Response(challenge, { status: 200 });
       }
-      return new Response("Forbidden", { status: 403 });
+      return new Response("Forbidden: Token Mismatch", { status: 403 });
     }
 
     // 2. INBOUND MESSAGE WEBHOOK PROCESSING
-    if (request.method === "POST" && url.pathname === "/webhook") {
+    if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
         
@@ -36,7 +36,6 @@ export default {
 
         // 🔥 IMMEDIATE RESPONSE CRITICAL: 
         // We reply HTTP 200 OK instantly so Meta doesn't flag a timeout and send duplicate messages.
-        // ctx.waitUntil safely executes our logic loop in the background.
         ctx.waitUntil(handleStateEngine(fromNumber, userText, env));
         return new Response("OK", { status: 200 });
 
