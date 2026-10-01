@@ -2,20 +2,18 @@ name = "whatsapp-alpaca-bot"
 main = "index.js"
 compatibility_date = "2024-12-18"
 
+# 🟢 CONFIGURATION VARIABLES (Safe for Git)
+[vars]
+ALPACA_PAPER_TRADING = "true" 
 
-# Place environment secrets in Cloudflare Dashboard or set via `wrangler secret put <KEY>`
-# [vars]
-# ALPACA_KEY_ID = (Your Alpaca key)
-# ALPACA_SECRET_KEY = (Your Alpaca secret)
-# ALPACA_PAPER_TRADING = "true"
-# META_ACCESS_TOKEN	Paste your Meta WhatsApp Access Token here
-# WHATSAPP_PHONE_NUMBER_ID	Paste the Phone Number ID numeric string here
-# WHATSAPP_VERIFY_TOKEN	Create any random password string here (e.g., MySecretBotToken123!)
-# ALPACA_KEY_ID	Paste your Alpaca Paper/Live Key ID string here
-# ALPACA_SECRET_KEY	Paste your Alpaca Secret Key here
-# ALPACA_PAPER_TRADING	Set to exactly true if you are using paper accounts, or false for live trading
+# 🔒 DASHBOARD SECRETS NOTE (Do not paste values here, keep them in your Cloudflare dashboard):
+# - META_ACCESS_TOKEN
+# - WHATSAPP_PHONE_NUMBER_ID
+# - WHATSAPP_VERIFY_TOKEN
+# - ALPACA_KEY_ID
+# - ALPACA_SECRET_KEY
 
+# 🟢 FREE KV STORAGE DATABASE BINDING
 [[kv_namespaces]]
 binding = "USER_SESSIONS"
 id = "b7261f8c0f2b4b098d96b5cbf787cf77"
-
