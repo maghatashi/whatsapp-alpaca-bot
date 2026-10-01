@@ -1,11 +1,11 @@
 /**
  * WhatsApp KokuTrader Trading Bot Engine
- * Phase 2 Refined: OTM Options + Real-time Option Pricing + Localization
+ * Phase 2 Refined: OTM Options + Real-time Option Pricing + Localization + Market Hours
  */
 
 const GRAPH_API_VERSION = "v21.0";
+const MARKET_TZ = "America/New_York";
 
-// Complete localization dictionaries for zero-friction dynamic phrasing
 const LANGUAGES = {
   EN: {
     welcome: "🙌 Welcome to your *KokuTrader Trading Command Hub*!\n\n👉 Text *check [TICKER]* (e.g., _check NVDA_) to pull live data.\n👉 Text *lang* to change your language profile anytime.",
@@ -18,9 +18,17 @@ const LANGUAGES = {
     summaryTitle: "📈 *{ticker} Market Summary*",
     bid: "Bid Price",
     ask: "Ask Price",
+    contractBid: "Contract Bid",
+    noBid: "No Bid",
     otmCalls: "🔔 *Next 3 Out-of-the-Money Call Contracts:*",
     noContracts: "⚠️ No active near-term call chains returned from your account tiers.",
-    unrecognized: "🤖 Command unrecognized. Try texting *hello*, *check TSLA*, or *lang*."
+    unrecognized: "🤖 Command unrecognized. Try texting *hello*, *check TSLA*, or *lang*.",
+    marketClosedTitle: "🕒 *Market Closed*",
+    marketClosedBody: "Quotes may be stale or show no bid until trading resumes.",
+    marketHoursLine: "🗓 *Regular session:* Mon–Fri, 9:30 AM – 4:00 PM ET",
+    extendedHoursLine: "🌅 *Extended hours:* Pre-market 4:00–9:30 AM · After-hours 4:00–8:00 PM ET",
+    nextOpenLine: "⏭ *Next open:* {nextOpen}",
+    marketOpenLine: "🟢 *Market Open* · closes 4:00 PM ET"
   },
   ES: {
     welcome: "🙌 ¡Bienvenido a tu *KokuTrader Centro de Control*!\n\n👉 Envía *check [TICKER]* (ej: _check NVDA_) para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",
@@ -33,9 +41,17 @@ const LANGUAGES = {
     summaryTitle: "📈 *Resumen de Mercado: {ticker}*",
     bid: "Precio Compra (Bid)",
     ask: "Precio Venta (Ask)",
+    contractBid: "Bid del Contrato",
+    noBid: "Sin Bid",
     otmCalls: "🔔 *Próximos 3 Contratos Call Out-of-the-Money (OTM):*",
     noContracts: "⚠️ No se encontraron contratos call activos para este activo.",
-    unrecognized: "🤖 Comando no reconocido. Intenta enviando *hello*, *check TSLA*, o *lang*."
+    unrecognized: "🤖 Comando no reconocido. Intenta enviando *hello*, *check TSLA*, o *lang*.",
+    marketClosedTitle: "🕒 *Mercado Cerrado*",
+    marketClosedBody: "Las cotizaciones pueden estar desactualizadas o sin bid hasta que se reanude la negociación.",
+    marketHoursLine: "🗓 *Sesión regular:* Lun–Vie, 9:30 AM – 4:00 PM ET",
+    extendedHoursLine: "🌅 *Horario extendido:* Pre-mercado 4:00–9:30 AM · Post-mercado 4:00–8:00 PM ET",
+    nextOpenLine: "⏭ *Próxima apertura:* {nextOpen}",
+    marketOpenLine: "🟢 *Mercado Abierto* · cierra 4:00 PM ET"
   },
   PT: {
     welcome: "🙌 Bem-vindo ao seu *KokuTrader Centro de Comando*!\n\n👉 Envie *check [TICKER]* (ex: _check NVDA_) para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",
@@ -48,9 +64,17 @@ const LANGUAGES = {
     summaryTitle: "📈 *Resumo de Mercado: {ticker}*",
     bid: "Preço de Compra (Bid)",
     ask: "Preço de Venda (Ask)",
+    contractBid: "Bid do Contrato",
+    noBid: "Sem Bid",
     otmCalls: "🔔 *Próximos 3 Contratos Call Out-of-the-Money (OTM):*",
     noContracts: "⚠️ Nenhum contrato call ativo encontrado para este ativo.",
-    unrecognized: "🤖 Comando não reconhecido. Tente enviar *hello*, *check TSLA*, ou *lang*."
+    unrecognized: "🤖 Comando não reconhecido. Tente enviar *hello*, *check TSLA*, ou *lang*.",
+    marketClosedTitle: "🕒 *Mercado Fechado*",
+    marketClosedBody: "As cotações podem estar defasadas ou sem bid até a retomada das negociações.",
+    marketHoursLine: "🗓 *Pregão regular:* Seg–Sex, 9:30 – 16:00 ET",
+    extendedHoursLine: "🌅 *Horário estendido:* Pré-mercado 4:00–9:30 · After-market 16:00–20:00 ET",
+    nextOpenLine: "⏭ *Próxima abertura:* {nextOpen}",
+    marketOpenLine: "🟢 *Mercado Aberto* · fecha às 16:00 ET"
   }
 };
 
@@ -132,28 +156,32 @@ async function handleStateEngine(phone, text, env) {
   } catch (err) {
     console.error("KV read failed:", err);
   }
-  
+
   if (!session) {
-    session = { step: "IDLE", lang: "EN" }; // Default setup tracking profile
+    session = { step: "IDLE", lang: "EN" };
   }
-  
-  // Ensure absolute translation safety
+
   const langCode = session.lang || "EN";
   const dictionary = LANGUAGES[langCode] || LANGUAGES.EN;
 
   const cleanText = text.toUpperCase().trim();
 
-  // INTERACTION FLOW ROUTING ENGINE
   if (cleanText === "LANG") {
     await sendWhatsApp(phone, dictionary.langMenu, env);
     return;
   }
-  
+
   if (cleanText.startsWith("LANG ")) {
     const selectedLang = cleanText.split(/\s+/)[1];
     if (LANGUAGES[selectedLang]) {
       session.lang = selectedLang;
-      await env.USER_SESSIONS.put(phone, JSON.stringify(session));
+      try {
+        if (env.USER_SESSIONS) {
+          await env.USER_SESSIONS.put(phone, JSON.stringify(session));
+        }
+      } catch (err) {
+        console.error("KV write failed:", err);
+      }
       await sendWhatsApp(phone, LANGUAGES[selectedLang].langSaved, env);
     } else {
       await sendWhatsApp(phone, dictionary.langMenu, env);
@@ -163,15 +191,14 @@ async function handleStateEngine(phone, text, env) {
 
   switch (session.step) {
     case "IDLE":
+    default:
       if (cleanText.startsWith("CHECK ") || cleanText.startsWith("PRICE ")) {
         const parts = cleanText.split(/\s+/);
         const ticker = parts[1];
-        await executeMarketLookupChain(phone, ticker, dictionary, env);
-      }
-      else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
+        await executeMarketLookupChain(phone, ticker, dictionary, env, langCode);
+      } else if (cleanText === "HI" || cleanText === "HELLO" || cleanText === "HOLA") {
         await sendWhatsApp(phone, dictionary.welcome, env);
-      }
-      else {
+      } else {
         await sendWhatsApp(phone, dictionary.unrecognized, env);
       }
       break;
@@ -179,27 +206,104 @@ async function handleStateEngine(phone, text, env) {
 }
 
 /**
+ * Market hours helpers (US equities, Eastern Time)
+ */
+function easternParts(date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: MARKET_TZ,
+    weekday: "short",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false
+  }).formatToParts(date);
+  const get = (t) => parts.find((p) => p.type === t)?.value;
+  return {
+    weekday: get("weekday"),
+    minutes: (parseInt(get("hour"), 10) % 24) * 60 + parseInt(get("minute"), 10)
+  };
+}
+
+function isRegularSession(date) {
+  const { weekday, minutes } = easternParts(date);
+  if (weekday === "Sat" || weekday === "Sun") return false;
+  return minutes >= 570 && minutes < 960; // 9:30 AM – 4:00 PM ET
+}
+
+function formatNextOpen(date, langCode) {
+  const locale = langCode === "ES" ? "es-ES" : langCode === "PT" ? "pt-BR" : "en-US";
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: MARKET_TZ,
+    weekday: "long",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short"
+  }).format(date);
+}
+
+async function getMarketStatus(apiBase, authHeaders) {
+  // Preferred: Alpaca clock (accounts for holidays and early closes)
+  try {
+    const res = await fetch(apiBase + "/v2/clock", { method: "GET", headers: authHeaders });
+    if (res.ok) {
+      const clock = await res.json();
+      return { isOpen: !!clock.is_open, nextOpen: clock.next_open ? new Date(clock.next_open) : null };
+    }
+  } catch (err) {
+    console.error("Clock fetch failed, using fallback:", err);
+  }
+
+  // Fallback: weekday + hours check (no holiday awareness)
+  const now = new Date();
+  if (isRegularSession(now)) return { isOpen: true, nextOpen: null };
+
+  const probe = new Date(now.getTime());
+  for (let i = 0; i < 7 * 24 * 60; i++) {
+    probe.setTime(probe.getTime() + 60 * 1000);
+    if (isRegularSession(probe)) return { isOpen: false, nextOpen: new Date(probe.getTime()) };
+  }
+  return { isOpen: false, nextOpen: null };
+}
+
+function buildMarketFooter(dict, status, langCode) {
+  if (status.isOpen) {
+    return "\n" + dict.marketOpenLine;
+  }
+  let footer = "\n━━━━━━━━━━━━━━\n" + dict.marketClosedTitle + "\n" + dict.marketClosedBody + "\n\n";
+  footer += dict.marketHoursLine + "\n" + dict.extendedHoursLine;
+  if (status.nextOpen) {
+    footer += "\n" + dict.nextOpenLine.replace("{nextOpen}", formatNextOpen(status.nextOpen, langCode));
+  }
+  return footer;
+}
+
+/**
  * Live Stock Quote Data and OTM Call Option Pricing Logic
  */
-async function executeMarketLookupChain(phone, ticker, dict, env) {
+async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
   if (!ticker || ticker.length > 5) {
     await sendWhatsApp(phone, dict.invalidTicker, env);
     return;
   }
 
+  const authHeaders = {
+    "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
+    "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
+    "Accept": "application/json"
+  };
+
+  const apiBase = env.ALPACA_PAPER_TRADING === "true"
+    ? "https://paper-api.alpaca.markets"
+    : "https://api.alpaca.markets";
+
   try {
     await sendWhatsApp(phone, dict.fetching.replace("{ticker}", ticker), env);
 
-    // 1. Fetch live stock quotes from the explicit free IEX feed
+    // Market status runs in parallel with the stock quote
+    const statusPromise = getMarketStatus(apiBase, authHeaders);
+
+    // 1. Live stock quote (free IEX feed)
     const stockUrl = "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) + "/quotes/latest?feed=iex";
-    const stockRes = await fetch(stockUrl, {
-      method: "GET",
-      headers: {
-        "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
-        "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
-        "Accept": "application/json"
-      }
-    });
+    const stockRes = await fetch(stockUrl, { method: "GET", headers: authHeaders });
 
     if (!stockRes.ok) {
       await sendWhatsApp(phone, dict.feedError, env);
@@ -207,75 +311,75 @@ async function executeMarketLookupChain(phone, ticker, dict, env) {
     }
 
     const stockData = await stockRes.json();
-    const currentStockPrice = stockData?.quote?.bp || 0; // Baseline Bid Reference for Moneyness
+    const status = await statusPromise;
+    const footer = buildMarketFooter(dict, status, langCode);
+    const currentStockPrice = stockData?.quote?.bp || stockData?.quote?.ap || 0;
 
-    if (!currentStockPrice || currentStockPrice === 0) {
-      await sendWhatsApp(phone, dict.emptyParams.replace("{ticker}", ticker), env);
+    if (!currentStockPrice) {
+      await sendWhatsApp(phone, dict.emptyParams.replace("{ticker}", ticker) + "\n" + footer, env);
       return;
     }
 
-    const apiBase = env.ALPACA_PAPER_TRADING === "true" 
-      ? "https://paper-api.alpaca.markets" 
-      : "https://api.alpaca.markets";
-
-    // 2. Fetch all active Call Options contracts for the symbol to filter OTM manually
-    const optionContractsUrl = apiBase + "/v2/options/contracts?underlying_symbols=" + encodeURIComponent(ticker) + "&status=active&type=call&limit=50";
-    const optionContractsRes = await fetch(optionContractsUrl, {
-      method: "GET",
-      headers: {
-        "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
-        "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
-        "Accept": "application/json"
-      }
-    });
+    // 2. Active call contracts: future expiries, strikes above spot
+    const today = new Date().toISOString().slice(0, 10);
+    const optionContractsUrl = apiBase + "/v2/options/contracts"
+      + "?underlying_symbols=" + encodeURIComponent(ticker)
+      + "&status=active&type=call"
+      + "&expiration_date_gte=" + today
+      + "&strike_price_gte=" + currentStockPrice
+      + "&limit=100";
+    const optionContractsRes = await fetch(optionContractsUrl, { method: "GET", headers: authHeaders });
 
     let otmCalls = [];
     if (optionContractsRes.ok) {
       const optionContractsData = await optionContractsRes.json();
       const rawContracts = optionContractsData?.option_contracts || [];
 
-      // 🔥 FILTER STRATEGY: Select call contracts whose strike price is HIGHER than current market stock bid
       otmCalls = rawContracts
-        .filter(c => parseFloat(c.strike_price) > currentStockPrice)
-        .sort((a, b) => parseFloat(a.strike_price) - parseFloat(b.strike_price)) // Closest to current price first
-        .slice(0, 3); // Capture the top 3 next OTM strikes
+        .filter((c) => parseFloat(c.strike_price) > currentStockPrice)
+        .sort((a, b) =>
+          a.expiration_date.localeCompare(b.expiration_date) ||
+          parseFloat(a.strike_price) - parseFloat(b.strike_price)
+        ) // nearest expiry first, then closest strike
+        .slice(0, 3);
     }
 
-          // 3. Fetch the latest live Options pricing snapshot quotes from Alpaca for contract bid sizes
-      const optionQuotesUrl = "https://alpaca.markets" + encodeURIComponent(symbolsList);
-      const optionQuotesRes = await fetch(optionQuotesUrl, {
-        method: "GET",
-        headers: {
-          "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
-          "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
-          "Accept": "application/json"
-        }
-      });
+    // 3. Live option quotes for those contracts
+    let pricingDataMap = {};
+    if (otmCalls.length > 0) {
+      const symbolsList = otmCalls.map((c) => c.symbol).join(",");
+      const optionQuotesUrl = "https://data.alpaca.markets/v1beta1/options/quotes/latest?feed=indicative&symbols="
+        + encodeURIComponent(symbolsList);
+      const optionQuotesRes = await fetch(optionQuotesUrl, { method: "GET", headers: authHeaders });
 
       if (optionQuotesRes.ok) {
         const quotesPayload = await optionQuotesRes.json();
-        pricingDataMap = quotesPayload?.quotes || {}; // Maps option contract symbol to its current bid/ask
+        pricingDataMap = quotesPayload?.quotes || {};
+      } else {
+        console.error("Option quotes failed:", optionQuotesRes.status, await optionQuotesRes.text());
       }
     }
 
-    // 4. Construct visual layout format output
+    // 4. Build message
     let messageBody = dict.summaryTitle.replace("{ticker}", ticker) + "\n\n";
-    messageBody += "💵 *" + dict.bid + ":* \$" + currentStockPrice + "\n";
-    messageBody += "💵 *" + dict.ask + ":* \$" + (stockData?.quote?.ap || 0) + "\n\n";
+    messageBody += "💵 *" + dict.bid + ":* $" + currentStockPrice + "\n";
+    messageBody += "💵 *" + dict.ask + ":* $" + (stockData?.quote?.ap || 0) + "\n\n";
     messageBody += dict.otmCalls + "\n";
 
     if (otmCalls.length === 0) {
-      messageBody += dict.noContracts;
+      messageBody += dict.noContracts + "\n";
     } else {
       otmCalls.forEach((c) => {
-        const contractQuote = pricingDataMap[c.symbol];
-        const contractBid = contractQuote?.bp ? ("\$" + contractQuote.bp) : "\$0.00 (No Bid)";
-        
-        messageBody += "\n• *Strike:* \$" + c.strike_price + " | *Expiry:* " + c.expiration_date + "\n";
-        messageBody += "  _" + dict.bid + " do Contrato:_ *" + contractBid + "*\n";
+        const q = pricingDataMap[c.symbol];
+        const contractBid = q?.bp ? ("$" + q.bp) : "$0.00 (" + dict.noBid + ")";
+
+        messageBody += "\n• *Strike:* $" + c.strike_price + " | *Expiry:* " + c.expiration_date + "\n";
+        messageBody += "  _" + dict.contractBid + ":_ *" + contractBid + "*\n";
         messageBody += "  _OSID:_ `" + c.symbol + "`\n";
       });
     }
+
+    messageBody += footer;
 
     await sendWhatsApp(phone, messageBody, env);
 
@@ -289,9 +393,8 @@ async function executeMarketLookupChain(phone, ticker, dict, env) {
  * Native Meta Graph API Messaging Bridge
  */
 async function sendWhatsApp(to, message, env) {
-  // 🟢 FIXED: Using explicit string addition to guarantee your compiler compiles cleanly
-  const metaUrl = "https://facebook.com" + GRAPH_API_VERSION + "/" + env.WHATSAPP_PHONE_NUMBER_ID + "/messages";
-  
+  const metaUrl = "https://graph.facebook.com/" + GRAPH_API_VERSION + "/" + env.WHATSAPP_PHONE_NUMBER_ID + "/messages";
+
   const res = await fetch(metaUrl, {
     method: "POST",
     headers: {
@@ -310,4 +413,3 @@ async function sendWhatsApp(to, message, env) {
     console.error("WhatsApp send failed:", res.status, await res.text());
   }
 }
-
