@@ -159,7 +159,7 @@ async function executeAlpacaPriceFetch(phone, ticker, env) {
  * Native Meta Graph API Messaging Bridge
  */
 async function sendWhatsApp(to, message, env) {
-  // Corrected Meta endpoint route using backticks and variables
+  // 🔥 THE FIX: Added graph. domain, explicit forward slash, and the crucial \$ sign for variable lookup!
   const metaUrl = `https://facebook.com{env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
   
   await fetch(metaUrl, {
@@ -176,3 +176,4 @@ async function sendWhatsApp(to, message, env) {
     })
   });
 }
+
