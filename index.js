@@ -1,14 +1,13 @@
 /**
  * WhatsApp KokuTrader Trading Bot Engine
- * Alpaca-only MVP: closed-beta gate, WhatsApp-verified linking, encrypted per-user keys,
- * button menus, balance, OTM call lookup, localization, market hours.
- * Trading mode: PAPER (MVP). Live becomes the default in Phase 2.
+ * Alpaca MVP. Storage split:
+ *   D1 (DB):          users, encrypted broker keys (broker_links)
+ *   KV (USER_SESSIONS): dialogue state, one-time link tokens, one-time codes, rate limits (all expire)
  *
- * Required secrets: WHATSAPP_VERIFY_TOKEN, META_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
- *   ALLOWED_PHONES, ALPACA_KEY_ID, ALPACA_SECRET_KEY (read-only market-data key),
- *   CREDENTIAL_KEY (base64, 32 bytes, AES-GCM master key)
- * Required vars: PUBLIC_BASE_URL (e.g. https://kokutrader.example.workers.dev)
- * Required KV binding: USER_SESSIONS
+ * Secrets: WHATSAPP_VERIFY_TOKEN, META_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
+ *          ALPACA_KEY_ID, ALPACA_SECRET_KEY (read-only market-data key), CREDENTIAL_KEY (base64, 32 bytes)
+ * Vars:    PUBLIC_BASE_URL (no trailing slash)
+ * Bindings: DB (D1), USER_SESSIONS (KV)
  */
 
 const GRAPH_API_VERSION = "v21.0";
@@ -18,7 +17,6 @@ const TRADING_MODE_DEFAULT = "paper";
 const LANGUAGES = {
   EN: {
     welcome: "🙌 Welcome to your *KokuTrader Trading Command Hub*!\n\n👉 Text *check [TICKER]* (e.g., _check NVDA_) to pull live data.\n👉 Text *lang* to change your language profile anytime.",
-    langMenu: "🌐 *Select Your Language / Selecciona tu idioma / Selecione seu idioma:*\n\nText one of the choices:\n• *LANG EN* (English)\n• *LANG ES* (Español)\n• *LANG PT* (Português BR)",
     langSaved: "✅ Preference updated to English!",
     invalidTicker: "❌ Asset code format invalid. Try: _check AAPL_",
     fetching: "🔍 Fetching live data chain metrics for {ticker}...",
@@ -31,7 +29,6 @@ const LANGUAGES = {
     noBid: "No Bid",
     otmCalls: "🔔 *Next 3 Out-of-the-Money Call Contracts:*",
     noContracts: "⚠️ No active near-term call chains returned from your account tiers.",
-    unrecognized: "🤖 Command unrecognized. Try texting *hello*, *check TSLA*, or *lang*.",
     marketClosedTitle: "🕒 *Market Closed*",
     marketClosedBody: "Quotes may be stale or show no bid until trading resumes.",
     marketHoursLine: "🗓 *Regular session:* Mon–Fri, 9:30 AM – 4:00 PM ET",
@@ -41,7 +38,6 @@ const LANGUAGES = {
   },
   ES: {
     welcome: "🙌 ¡Bienvenido a tu *KokuTrader Centro de Control*!\n\n👉 Envía *check [TICKER]* (ej: _check NVDA_) para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",
-    langMenu: "🌐 *Selecciona tu idioma:*\n\nEnvía una opción:\n• *LANG EN* (Inglés)\n• *LANG ES* (Español)\n• *LANG PT* (Portugués BR)",
     langSaved: "✅ ¡Preferencia actualizada a Español!",
     invalidTicker: "❌ Formato de activo inválido. Intenta: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
@@ -54,7 +50,6 @@ const LANGUAGES = {
     noBid: "Sin Bid",
     otmCalls: "🔔 *Próximos 3 Contratos Call Out-of-the-Money (OTM):*",
     noContracts: "⚠️ No se encontraron contratos call activos para este activo.",
-    unrecognized: "🤖 Comando no reconocido. Intenta enviando *hello*, *check TSLA*, o *lang*.",
     marketClosedTitle: "🕒 *Mercado Cerrado*",
     marketClosedBody: "Las cotizaciones pueden estar desactualizadas o sin bid hasta que se reanude la negociación.",
     marketHoursLine: "🗓 *Sesión regular:* Lun–Vie, 9:30 AM – 4:00 PM ET",
@@ -64,7 +59,6 @@ const LANGUAGES = {
   },
   PT: {
     welcome: "🙌 Bem-vindo ao seu *KokuTrader Centro de Comando*!\n\n👉 Envie *check [TICKER]* (ex: _check NVDA_) para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",
-    langMenu: "🌐 *Selecione seu idioma:*\n\nEnvie uma das opções:\n• *LANG EN* (Inglês)\n• *LANG ES* (Espanhol)\n• *LANG PT* (Português BR)",
     langSaved: "✅ Preferência atualizada para Português!",
     invalidTicker: "❌ Formato de ativo inválido. Tente: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
@@ -77,7 +71,6 @@ const LANGUAGES = {
     noBid: "Sem Bid",
     otmCalls: "🔔 *Próximos 3 Contratos Call Out-of-the-Money (OTM):*",
     noContracts: "⚠️ Nenhum contrato call ativo encontrado para este ativo.",
-    unrecognized: "🤖 Comando não reconhecido. Tente enviar *hello*, *check TSLA*, ou *lang*.",
     marketClosedTitle: "🕒 *Mercado Fechado*",
     marketClosedBody: "As cotações podem estar defasadas ou sem bid até a retomada das negociações.",
     marketHoursLine: "🗓 *Pregão regular:* Seg–Sex, 9:30 – 16:00 ET",
@@ -216,13 +209,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // 1. WHATSAPP WEBHOOK VALIDATION
+    // 1. WhatsApp webhook verification
     if (request.method === "GET" && url.pathname.includes("/webhook")) {
-      const verifyToken = env.WHATSAPP_VERIFY_TOKEN;
       const token = url.searchParams.get("hub.verify_token") || url.searchParams.get("verify_token");
       const challenge = url.searchParams.get("hub.challenge") || url.searchParams.get("challenge");
-
-      if (token === verifyToken) {
+      if (token === env.WHATSAPP_VERIFY_TOKEN) {
         return new Response(challenge, {
           status: 200,
           headers: { "Content-Type": "text/plain; charset=utf-8" }
@@ -231,20 +222,16 @@ export default {
       return new Response("Forbidden: Token Mismatch", { status: 403 });
     }
 
-    // 2. INBOUND MESSAGE WEBHOOK PROCESSING
+    // 2. Inbound messages
     if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
         const value = payload?.entry?.[0]?.changes?.[0]?.value;
 
-        if (value?.statuses) {
-          return new Response("OK", { status: 200 });
-        }
+        if (value?.statuses) return new Response("OK", { status: 200 });
 
         const messageObj = value?.messages?.[0];
-        if (!messageObj) {
-          return new Response("OK", { status: 200 });
-        }
+        if (!messageObj) return new Response("OK", { status: 200 });
 
         const fromNumber = messageObj.from;
         let userText = "";
@@ -260,9 +247,7 @@ export default {
           userText = messageObj.button?.text || "";
         }
 
-        if (!userText && !buttonId) {
-          return new Response("OK", { status: 200 });
-        }
+        if (!userText && !buttonId) return new Response("OK", { status: 200 });
 
         ctx.waitUntil(
           handleStateEngine(fromNumber, { text: userText, buttonId }, env).catch((err) => {
@@ -270,20 +255,19 @@ export default {
           })
         );
         return new Response("OK", { status: 200 });
-
       } catch (err) {
         console.error("Webhook payload processing fault:", err);
         return new Response("Internal Server Error", { status: 500 });
       }
     }
 
-    // 3. BROKER LINKING PAGE (browser, not WhatsApp)
+    // 3. Broker linking page (opened in a browser from WhatsApp)
     if (url.pathname.startsWith("/link/")) {
       try {
         return await handleLinkRoute(request, url, env);
       } catch (err) {
         console.error("Link route failed:", err?.stack || err);
-        return htmlPage(LANGUAGES.EN ? "Something went wrong. Try again." : "", 500);
+        return htmlPage("Something went wrong. Try again.", 500);
       }
     }
 
@@ -295,15 +279,15 @@ export default {
  * DIALOGUE ROUTING
  * ============================================================ */
 async function handleStateEngine(phone, input, env) {
-  // Closed beta: unknown numbers get no response (no balance leaks, no spam cost)
-  if (!isAllowedPhone(phone, env)) return;
+  const token = (input.buttonId || input.text || "").trim().toUpperCase();
+  console.log("inbound", { last4: phone.slice(-4), token: token.slice(0, 30) });
+
+  await ensureUser(phone, env);
 
   const session = await loadSession(phone, env);
-  const raw = (input.text || "").trim();
-  const token = (input.buttonId || raw).toUpperCase().trim();
   const lang = session.lang;
 
-  // 1. Language choice: button ID, typed "LANG EN", or bare "EN" while picking
+  // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking
   const langMatch =
     token.match(/^LANG[_ ](EN|ES|PT)$/) ||
     (session.step === "LANG_PICK" && token.match(/^(EN|ES|PT)$/));
@@ -313,18 +297,14 @@ async function handleStateEngine(phone, input, env) {
     session.step = "MENU";
     await saveSession(phone, session, env);
     await sendWhatsApp(phone, LANGUAGES[session.lang].langSaved, env);
+
     const linked = await getLink(phone, env);
-    if (!linked) {
-      await sendWhatsApp(phone, FLOW[session.lang].notLinked, env);
-      return sendLinkPrompt(phone, session.lang, env);
-    }
-    return sendMainMenu(
-      phone, session.lang, env,
-      LANGUAGES[session.lang].welcome + "\n\n" + FLOW[session.lang].menuPrompt
-    );
+    if (!linked) return sendLinkPrompt(phone, session.lang, env);
+    return sendMainMenu(phone, session.lang, env,
+      LANGUAGES[session.lang].welcome + "\n\n" + FLOW[session.lang].menuPrompt);
   }
 
-  // 2. First contact (no language yet) or user asks to change language
+  // 2. First contact, or user asks to change language
   if (!lang || token === "LANG") {
     session.step = "LANG_PICK";
     await saveSession(phone, session, env);
@@ -334,16 +314,14 @@ async function handleStateEngine(phone, input, env) {
   const dict = LANGUAGES[lang];
   const f = FLOW[lang];
 
-  // 3. Global keywords work from any step
+  // 3. Global keywords, valid from any step
   if (["MENU", "HI", "HELLO", "HOLA", "OI"].includes(token)) {
     session.step = "MENU";
     await saveSession(phone, session, env);
     return sendMainMenu(phone, lang, env, dict.welcome + "\n\n" + f.menuPrompt);
   }
 
-  if (token === "LINK") {
-    return sendLinkPrompt(phone, lang, env);
-  }
+  if (token === "LINK") return sendLinkPrompt(phone, lang, env);
 
   if (token === "DISCONNECT") {
     await deleteLink(phone, env);
@@ -363,7 +341,6 @@ async function handleStateEngine(phone, input, env) {
       }
       const ticker = token.replace(/^CHECK\s+/, "").split(/\s+/)[0];
       if (!/^[A-Z.]{1,5}$/.test(ticker)) {
-        // Stay on this step so the user can retry
         return sendWhatsApp(phone, dict.invalidTicker, env);
       }
       session.step = "MENU";
@@ -380,7 +357,6 @@ async function handleStateEngine(phone, input, env) {
       }
       if (token === "TRADE_ASSET" || token === "TRADE_COVERED_CALL") {
         session.step = token === "TRADE_ASSET" ? "ASSET_TICKER" : "COVERED_CALL_START";
-        session.ctx = {};
         await saveSession(phone, session, env);
         return sendWhatsApp(phone, f.tradeStub, env);
       }
@@ -396,27 +372,82 @@ async function handleStateEngine(phone, input, env) {
 
     case "MENU":
     default: {
-      if (token === "MENU_BALANCE" || token === "1") {
-        return showBalance(phone, lang, env);
-      }
+      if (token === "MENU_BALANCE" || token === "1") return showBalance(phone, lang, env);
+
       if (token === "MENU_PRICES" || token === "2") {
         session.step = "PRICE_ASK";
         await saveSession(phone, session, env);
         return sendWhatsApp(phone, f.askTicker, env);
       }
+
       if (token === "MENU_TRADE" || token === "3") {
         session.step = "TRADE_CHOOSE";
         await saveSession(phone, session, env);
         return sendTradeMenu(phone, lang, env);
       }
-      // Shortcut kept from v1: "check NVDA" works from the menu too
+
+      // Shortcut: "check NVDA" works from the menu too
       if (token.startsWith("CHECK ") || token.startsWith("PRICE ")) {
         const ticker = token.split(/\s+/)[1];
         await executeMarketLookupChain(phone, ticker, dict, env, lang);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
+
       return sendMainMenu(phone, lang, env, f.menuPrompt);
     }
+  }
+}
+
+/* ============================================================
+ * D1: USERS AND BROKER LINKS
+ * ============================================================ */
+async function ensureUser(phone, env) {
+  await env.DB.prepare("INSERT OR IGNORE INTO users (phone) VALUES (?)").bind(phone).run();
+}
+
+async function getLink(phone, env) {
+  const row = await env.DB.prepare(
+    "SELECT broker, mode, key_tail, enc_iv, enc_ct FROM broker_links WHERE phone = ?"
+  ).bind(phone).first();
+  if (!row) return null;
+  return {
+    broker: row.broker,
+    mode: row.mode,
+    keyTail: row.key_tail,
+    enc: { iv: row.enc_iv, ct: row.enc_ct }
+  };
+}
+
+async function saveLink(phone, link, enc, env) {
+  await env.DB.prepare(
+    `INSERT OR REPLACE INTO broker_links
+       (phone, broker, mode, key_tail, enc_iv, enc_ct, linked_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`
+  ).bind(phone, link.broker, link.mode, link.keyTail, enc.iv, enc.ct).run();
+}
+
+async function deleteLink(phone, env) {
+  await env.DB.prepare("DELETE FROM broker_links WHERE phone = ?").bind(phone).run();
+}
+
+/* ============================================================
+ * SESSIONS (KV, expire automatically)
+ * ============================================================ */
+async function loadSession(phone, env) {
+  try {
+    const s = await env.USER_SESSIONS.get("sess:" + phone, { type: "json" });
+    if (s) return s;
+  } catch (err) {
+    console.error("KV read failed:", err);
+  }
+  return { step: "LANG_PICK", lang: null };
+}
+
+async function saveSession(phone, session, env) {
+  try {
+    await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 30 });
+  } catch (err) {
+    console.error("KV write failed:", err);
   }
 }
 
@@ -456,11 +487,9 @@ async function showBalance(phone, lang, env) {
     await sendWhatsApp(phone, msg, env);
     return sendMainMenu(phone, lang, env, f.menuPrompt);
   } catch (err) {
-    console.error("Balance fetch failed:", err?.kind || err);
-    if (err?.kind === "AUTH") {
-      return sendWhatsApp(phone, f.authRejected, env);
-    }
-    await sendWhatsApp(phone, dict.feedError, env);
+    console.error("Balance fetch failed:", err?.kind || err?.message || err);
+    if (err?.kind === "AUTH") return sendWhatsApp(phone, f.authRejected, env);
+    return sendWhatsApp(phone, dict.feedError, env);
   }
 }
 
@@ -500,11 +529,10 @@ function fmtUSD(n, lang) {
 }
 
 /* ============================================================
- * TRADING MODE AND ALPACA CONNECTION
+ * ALPACA
  * ============================================================ */
 function tradingMode() {
-  // MVP: paper only.
-  // Phase 2: read a per-user setting and default to live.
+  // MVP: paper only. Phase 2: read a per-user setting, default live.
   return TRADING_MODE_DEFAULT;
 }
 
@@ -514,7 +542,7 @@ function alpacaBase(mode) {
     : "https://paper-api.alpaca.markets";
 }
 
-// Server-side read-only key for public market data (quotes, option chains).
+// Server read-only key for public market data only
 function serverAlpacaHeaders(env) {
   return {
     "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
@@ -523,7 +551,6 @@ function serverAlpacaHeaders(env) {
   };
 }
 
-// Per-user Alpaca request. Throws BrokerError on auth or upstream failure.
 class BrokerError extends Error {
   constructor(kind, status) {
     super(kind + ":" + status);
@@ -557,8 +584,7 @@ async function alpacaGetAccount(creds, mode) {
   const buyingPower = parseFloat(acc.buying_power);
   return {
     cash,
-    // Margin available = buying power not covered by positive cash.
-    // A negative cash balance (margin loan) must not inflate this figure.
+    // Buying power not covered by positive cash. A margin loan must not inflate it.
     marginAvailable: Math.max(buyingPower - Math.max(cash, 0), 0),
     total: parseFloat(acc.portfolio_value || acc.equity)
   };
@@ -589,13 +615,10 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
   try {
     await sendWhatsApp(phone, dict.fetching.replace("{ticker}", ticker), env);
 
-    // Market status runs in parallel with the stock quote
     const statusPromise = getMarketStatus(apiBase, authHeaders);
 
-    // 1. Live stock quote (free IEX feed)
     const stockUrl = "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) + "/quotes/latest?feed=iex";
     const stockRes = await fetch(stockUrl, { method: "GET", headers: authHeaders });
-
     if (!stockRes.ok) {
       await sendWhatsApp(phone, dict.feedError, env);
       return;
@@ -611,7 +634,6 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
       return;
     }
 
-    // 2. Active call contracts: future expiries, strikes above spot
     const today = new Date().toISOString().slice(0, 10);
     const optionContractsUrl = apiBase + "/v2/options/contracts"
       + "?underlying_symbols=" + encodeURIComponent(ticker)
@@ -623,35 +645,30 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
 
     let otmCalls = [];
     if (optionContractsRes.ok) {
-      const optionContractsData = await optionContractsRes.json();
-      const rawContracts = optionContractsData?.option_contracts || [];
-
-      otmCalls = rawContracts
+      const data = await optionContractsRes.json();
+      otmCalls = (data?.option_contracts || [])
         .filter((c) => parseFloat(c.strike_price) > currentStockPrice)
         .sort((a, b) =>
           a.expiration_date.localeCompare(b.expiration_date) ||
           parseFloat(a.strike_price) - parseFloat(b.strike_price)
-        ) // nearest expiry first, then closest strike
+        )
         .slice(0, 3);
     }
 
-    // 3. Live option quotes for those contracts
     let pricingDataMap = {};
     if (otmCalls.length > 0) {
       const symbolsList = otmCalls.map((c) => c.symbol).join(",");
       const optionQuotesUrl = "https://data.alpaca.markets/v1beta1/options/quotes/latest?feed=indicative&symbols="
         + encodeURIComponent(symbolsList);
       const optionQuotesRes = await fetch(optionQuotesUrl, { method: "GET", headers: authHeaders });
-
       if (optionQuotesRes.ok) {
         const quotesPayload = await optionQuotesRes.json();
         pricingDataMap = quotesPayload?.quotes || {};
       } else {
-        console.error("Option quotes failed:", optionQuotesRes.status, await optionQuotesRes.text());
+        console.error("Option quotes failed:", optionQuotesRes.status);
       }
     }
 
-    // 4. Build message
     let messageBody = dict.summaryTitle.replace("{ticker}", ticker) + "\n\n";
     messageBody += "💵 *" + dict.bid + ":* $" + currentStockPrice + "\n";
     messageBody += "💵 *" + dict.ask + ":* $" + (stockData?.quote?.ap || 0) + "\n\n";
@@ -663,7 +680,6 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
       otmCalls.forEach((c) => {
         const q = pricingDataMap[c.symbol];
         const contractBid = q?.bp ? ("$" + q.bp) : "$0.00 (" + dict.noBid + ")";
-
         messageBody += "\n• *Strike:* $" + c.strike_price + " | *Expiry:* " + c.expiration_date + "\n";
         messageBody += "  _" + dict.contractBid + ":_ *" + contractBid + "*\n";
         messageBody += "  _OSID:_ `" + c.symbol + "`\n";
@@ -671,11 +687,9 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
     }
 
     messageBody += footer;
-
     await sendWhatsApp(phone, messageBody, env);
-
   } catch (err) {
-    console.error("Market analysis engine exception:", err);
+    console.error("Market analysis engine exception:", err?.message || err);
     await sendWhatsApp(phone, dict.feedError, env);
   }
 }
@@ -701,7 +715,7 @@ function easternParts(date) {
 function isRegularSession(date) {
   const { weekday, minutes } = easternParts(date);
   if (weekday === "Sat" || weekday === "Sun") return false;
-  return minutes >= 570 && minutes < 960; // 9:30 AM – 4:00 PM ET
+  return minutes >= 570 && minutes < 960;
 }
 
 function formatNextOpen(date, langCode) {
@@ -716,7 +730,6 @@ function formatNextOpen(date, langCode) {
 }
 
 async function getMarketStatus(apiBase, authHeaders) {
-  // Preferred: Alpaca clock (accounts for holidays and early closes)
   try {
     const res = await fetch(apiBase + "/v2/clock", { method: "GET", headers: authHeaders });
     if (res.ok) {
@@ -724,10 +737,9 @@ async function getMarketStatus(apiBase, authHeaders) {
       return { isOpen: !!clock.is_open, nextOpen: clock.next_open ? new Date(clock.next_open) : null };
     }
   } catch (err) {
-    console.error("Clock fetch failed, using fallback:", err);
+    console.error("Clock fetch failed, using fallback:", err?.message || err);
   }
 
-  // Fallback: weekday + hours check (no holiday awareness)
   const now = new Date();
   if (isRegularSession(now)) return { isOpen: true, nextOpen: null };
 
@@ -740,9 +752,7 @@ async function getMarketStatus(apiBase, authHeaders) {
 }
 
 function buildMarketFooter(dict, status, langCode) {
-  if (status.isOpen) {
-    return "\n" + dict.marketOpenLine;
-  }
+  if (status.isOpen) return "\n" + dict.marketOpenLine;
   let footer = "\n━━━━━━━━━━━━━━\n" + dict.marketClosedTitle + "\n" + dict.marketClosedBody + "\n\n";
   footer += dict.marketHoursLine + "\n" + dict.extendedHoursLine;
   if (status.nextOpen) {
@@ -752,18 +762,17 @@ function buildMarketFooter(dict, status, langCode) {
 }
 
 /* ============================================================
- * LINKING: send link, verify WhatsApp code, validate and store keys
+ * LINKING: one-time link, WhatsApp code, validate and store keys
  * ============================================================ */
 async function sendLinkPrompt(phone, lang, env) {
-  const token = randomHex(32);                 // 256-bit, shown once in the URL
-  const hash = await sha256Hex(token);         // only the hash is stored
+  const token = randomHex(32);
+  const hash = await sha256Hex(token);
   await env.USER_SESSIONS.put("link:" + hash, JSON.stringify({ phone }), { expirationTtl: 600 });
   const url = env.PUBLIC_BASE_URL + "/link/" + token;
   return sendWhatsApp(phone, FLOW[lang].linkPrompt.replace("{url}", url), env);
 }
 
 async function handleLinkRoute(request, url, env) {
-  const f = (lang) => FLOW[lang];
   const token = url.pathname.split("/")[2] || "";
   if (!/^[0-9a-f]{64}$/.test(token)) return htmlPage(FLOW.EN.linkInvalid, 404);
 
@@ -772,8 +781,9 @@ async function handleLinkRoute(request, url, env) {
   if (!pending) return htmlPage(FLOW.EN.linkExpired, 410);
 
   const phone = pending.phone;
-  const lang = (await loadSession(phone, env)).lang || "EN";
-  const t = f(lang);
+  const session = await loadSession(phone, env);
+  const lang = session.lang || "EN";
+  const t = FLOW[lang];
 
   if (request.method === "GET") {
     const otp = await env.USER_SESSIONS.get("otp:" + phone, { type: "json" });
@@ -781,7 +791,7 @@ async function handleLinkRoute(request, url, env) {
       const sent = await issueOtp(phone, lang, env);
       if (!sent) return htmlPage(t.otpLimit, 429);
     }
-    return linkFormPage(token, lang, "");
+    return linkFormPage(lang, "");
   }
 
   if (request.method === "POST") {
@@ -791,9 +801,9 @@ async function handleLinkRoute(request, url, env) {
       keyId: String(form.get("keyId") || "").trim().slice(0, 200),
       secret: String(form.get("secret") || "").trim().slice(0, 200)
     };
-    const mode = tradingMode(); // MVP: paper only
+    const mode = tradingMode();
 
-    // 1. Verify the WhatsApp code
+    // 1. Verify WhatsApp code
     const otp = await env.USER_SESSIONS.get("otp:" + phone, { type: "json" });
     if (!otp) return htmlPage(t.codeExpired, 410);
 
@@ -806,26 +816,25 @@ async function handleLinkRoute(request, url, env) {
     if (!safeEqual(submitted, otp.codeHash)) {
       otp.attempts += 1;
       await env.USER_SESSIONS.put("otp:" + phone, JSON.stringify(otp), { expirationTtl: 600 });
-      return linkFormPage(token, lang, t.wrongCode);
+      return linkFormPage(lang, t.wrongCode);
     }
 
-    // 2. Validate the Alpaca keys before storing anything
+    // 2. Validate keys with Alpaca before storing anything
     try {
       await alpacaValidate(creds, mode);
     } catch (err) {
       const msg = err?.kind === "AUTH" ? t.keysRejected : t.alpacaDown;
-      return linkFormPage(token, lang, msg);
+      return linkFormPage(lang, msg);
     }
 
-    // 3. Encrypt and store, then burn the one-time link and code
+    // 3. Encrypt, store in D1, burn the one-time link and code
     const enc = await encryptCredentials(creds, env);
+    await ensureUser(phone, env);
     await saveLink(phone, {
       broker: "alpaca",
       mode,
-      enc,
-      linkedAt: new Date().toISOString(),
       keyTail: creds.keyId.slice(-4)
-    }, env);
+    }, enc, env);
 
     await burnLink(hash, phone, env);
     await sendWhatsApp(phone, t.linkedOk, env);
@@ -854,7 +863,7 @@ async function burnLink(hash, phone, env) {
   await env.USER_SESSIONS.delete("otp:" + phone);
 }
 
-function linkFormPage(token, lang, notice) {
+function linkFormPage(lang, notice) {
   const t = FLOW[lang] || FLOW.EN;
   const body = `<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -907,23 +916,10 @@ function safeEqual(a, b) {
 }
 
 /* ============================================================
- * CREDENTIAL STORE AND CRYPTO
+ * CRYPTO
  * ============================================================ */
-// Record per phone: { broker, mode, enc: { iv, ct }, linkedAt, keyTail }
-async function getLink(phone, env) {
-  return (await env.USER_SESSIONS.get("cred:" + phone, { type: "json" })) || null;
-}
-
-async function saveLink(phone, record, env) {
-  await env.USER_SESSIONS.put("cred:" + phone, JSON.stringify(record));
-}
-
-async function deleteLink(phone, env) {
-  await env.USER_SESSIONS.delete("cred:" + phone);
-}
-
 async function getCryptoKey(env) {
-  const raw = Uint8Array.from(atob(env.CREDENTIAL_KEY), (c) => c.charCodeAt(0)); // 32 bytes
+  const raw = Uint8Array.from(atob(env.CREDENTIAL_KEY), (c) => c.charCodeAt(0));
   return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
@@ -957,36 +953,8 @@ async function sha256Hex(s) {
 }
 
 /* ============================================================
- * SESSIONS, ALLOWLIST, WHATSAPP MESSAGING
+ * WHATSAPP MESSAGING
  * ============================================================ */
-function isAllowedPhone(phone, env) {
-  // ALLOWED_PHONES = "15551234567,34600111222" (digits only, as Meta sends them)
-  const list = (env.ALLOWED_PHONES || "").split(",").map((s) => s.trim()).filter(Boolean);
-  return list.includes(phone);
-}
-
-async function loadSession(phone, env) {
-  try {
-    if (env.USER_SESSIONS) {
-      const s = await env.USER_SESSIONS.get("sess:" + phone, { type: "json" });
-      if (s) return s;
-    }
-  } catch (err) {
-    console.error("KV read failed:", err);
-  }
-  return { step: "LANG_PICK", lang: null, ctx: {} };
-}
-
-async function saveSession(phone, session, env) {
-  try {
-    if (env.USER_SESSIONS) {
-      await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session));
-    }
-  } catch (err) {
-    console.error("KV write failed:", err);
-  }
-}
-
 async function postToMeta(payload, env) {
   const metaUrl = "https://graph.facebook.com/" + GRAPH_API_VERSION + "/"
     + env.WHATSAPP_PHONE_NUMBER_ID + "/messages";
