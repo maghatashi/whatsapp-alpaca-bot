@@ -1,11 +1,19 @@
 /**
  * WhatsApp KokuTrader Trading Bot Engine
- * Phase 2 Refined: Closed-beta gate + Button menus + Balance + OTM Options + Localization + Market Hours
+ * Alpaca-only MVP: closed-beta gate, WhatsApp-verified linking, encrypted per-user keys,
+ * button menus, balance, OTM call lookup, localization, market hours.
  * Trading mode: PAPER (MVP). Live becomes the default in Phase 2.
+ *
+ * Required secrets: WHATSAPP_VERIFY_TOKEN, META_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
+ *   ALLOWED_PHONES, ALPACA_KEY_ID, ALPACA_SECRET_KEY (read-only market-data key),
+ *   CREDENTIAL_KEY (base64, 32 bytes, AES-GCM master key)
+ * Required vars: PUBLIC_BASE_URL (e.g. https://kokutrader.example.workers.dev)
+ * Required KV binding: USER_SESSIONS
  */
 
 const GRAPH_API_VERSION = "v21.0";
 const MARKET_TZ = "America/New_York";
+const TRADING_MODE_DEFAULT = "paper";
 
 const LANGUAGES = {
   EN: {
@@ -91,7 +99,6 @@ const FLOW = {
     tradeMenuPrompt: "What would you like to do?",
     btnAsset: "Buy / Sell asset",
     btnCoveredCall: "Create Covered Call",
-    // btnDeriv: "Sell derivative", // legacy label, replaced by btnCoveredCall
     btnBack: "Back",
     tradeStub: "🚧 Trading is the next step. Your selection is saved.",
     balanceTitle: "💼 *Account balance*",
@@ -99,7 +106,28 @@ const FLOW = {
     margin: "Margin available",
     total: "Total account value",
     assets: "*Assets*",
-    noAssets: "No open positions."
+    noAssets: "No open positions.",
+    linkPrompt: "🔗 Connect your Alpaca *paper* account:\n{url}\n\nThis link expires in 10 minutes and works once. We'll send a code to this WhatsApp to confirm it's you.",
+    notLinked: "🔒 No broker linked yet.",
+    linkedOk: "✅ Connected to Alpaca (paper). Text *menu* to continue.",
+    disconnected: "🔌 Broker keys deleted. Revoke them in your Alpaca dashboard too.",
+    authRejected: "⚠️ Your Alpaca keys were rejected. Text *link* to reconnect.",
+    otpMessage: "🔐 Your KokuTrader linking code is *{code}*. It expires in 10 minutes. Never share it.",
+    otpLimit: "⚠️ Too many codes requested. Try again in an hour.",
+    linkInvalid: "This link is invalid.",
+    linkExpired: "This link has expired or was already used. Text *link* in WhatsApp for a new one.",
+    codeExpired: "Code expired. Text *link* in WhatsApp for a new one.",
+    tooManyAttempts: "Too many wrong codes. Text *link* in WhatsApp for a new link.",
+    wrongCode: "Incorrect code. Check WhatsApp and try again.",
+    keysRejected: "Those keys were rejected by Alpaca. Copy them again from the paper dashboard.",
+    alpacaDown: "Could not reach Alpaca. Try again shortly.",
+    connectedPage: "Connected. You can close this page and return to WhatsApp.",
+    formTitle: "Connect Alpaca (paper)",
+    formCode: "WhatsApp code",
+    formKeyId: "API Key ID",
+    formSecret: "API Secret",
+    formButton: "Connect",
+    formFootnote: "Keys are encrypted and never shown again. Use paper keys only."
   },
   ES: {
     menuPrompt: "¿Qué quieres hacer?",
@@ -110,7 +138,6 @@ const FLOW = {
     tradeMenuPrompt: "¿Qué quieres hacer?",
     btnAsset: "Comprar / Vender",
     btnCoveredCall: "Crear Covered Call",
-    // btnDeriv: "Vender derivado", // legacy label, replaced by btnCoveredCall
     btnBack: "Volver",
     tradeStub: "🚧 Operar es el siguiente paso. Tu selección quedó guardada.",
     balanceTitle: "💼 *Saldo de la cuenta*",
@@ -118,7 +145,28 @@ const FLOW = {
     margin: "Margen disponible",
     total: "Valor total de la cuenta",
     assets: "*Activos*",
-    noAssets: "Sin posiciones abiertas."
+    noAssets: "Sin posiciones abiertas.",
+    linkPrompt: "🔗 Conecta tu cuenta *paper* de Alpaca:\n{url}\n\nEl enlace expira en 10 minutos y sirve una sola vez. Te enviaremos un código a este WhatsApp para confirmar que eres tú.",
+    notLinked: "🔒 Aún no tienes un broker conectado.",
+    linkedOk: "✅ Conectado a Alpaca (paper). Escribe *menu* para continuar.",
+    disconnected: "🔌 Claves eliminadas. Revócalas también en tu panel de Alpaca.",
+    authRejected: "⚠️ Tus claves de Alpaca fueron rechazadas. Escribe *link* para reconectar.",
+    otpMessage: "🔐 Tu código de vinculación de KokuTrader es *{code}*. Expira en 10 minutos. No lo compartas.",
+    otpLimit: "⚠️ Demasiados códigos solicitados. Intenta en una hora.",
+    linkInvalid: "Este enlace no es válido.",
+    linkExpired: "Este enlace expiró o ya se usó. Escribe *link* en WhatsApp para uno nuevo.",
+    codeExpired: "El código expiró. Escribe *link* en WhatsApp para uno nuevo.",
+    tooManyAttempts: "Demasiados códigos incorrectos. Escribe *link* en WhatsApp para un enlace nuevo.",
+    wrongCode: "Código incorrecto. Revisa WhatsApp e inténtalo de nuevo.",
+    keysRejected: "Alpaca rechazó esas claves. Cópialas de nuevo desde el panel paper.",
+    alpacaDown: "No se pudo conectar con Alpaca. Intenta de nuevo en un momento.",
+    connectedPage: "Conectado. Puedes cerrar esta página y volver a WhatsApp.",
+    formTitle: "Conectar Alpaca (paper)",
+    formCode: "Código de WhatsApp",
+    formKeyId: "API Key ID",
+    formSecret: "API Secret",
+    formButton: "Conectar",
+    formFootnote: "Las claves se cifran y nunca se vuelven a mostrar. Usa solo claves paper."
   },
   PT: {
     menuPrompt: "O que você gostaria de fazer?",
@@ -129,7 +177,6 @@ const FLOW = {
     tradeMenuPrompt: "O que você gostaria de fazer?",
     btnAsset: "Comprar / Vender",
     btnCoveredCall: "Criar Covered Call",
-    // btnDeriv: "Vender derivativo", // legacy label, replaced by btnCoveredCall
     btnBack: "Voltar",
     tradeStub: "🚧 Negociar é o próximo passo. Sua escolha foi salva.",
     balanceTitle: "💼 *Saldo da conta*",
@@ -137,10 +184,34 @@ const FLOW = {
     margin: "Margem disponível",
     total: "Valor total da conta",
     assets: "*Ativos*",
-    noAssets: "Sem posições abertas."
+    noAssets: "Sem posições abertas.",
+    linkPrompt: "🔗 Conecte sua conta *paper* da Alpaca:\n{url}\n\nO link expira em 10 minutos e funciona uma única vez. Enviaremos um código para este WhatsApp para confirmar que é você.",
+    notLinked: "🔒 Nenhum corretor conectado ainda.",
+    linkedOk: "✅ Conectado à Alpaca (paper). Envie *menu* para continuar.",
+    disconnected: "🔌 Chaves excluídas. Revogue-as também no painel da Alpaca.",
+    authRejected: "⚠️ Suas chaves da Alpaca foram rejeitadas. Envie *link* para reconectar.",
+    otpMessage: "🔐 Seu código de vinculação do KokuTrader é *{code}*. Expira em 10 minutos. Nunca o compartilhe.",
+    otpLimit: "⚠️ Muitos códigos solicitados. Tente novamente em uma hora.",
+    linkInvalid: "Este link é inválido.",
+    linkExpired: "Este link expirou ou já foi usado. Envie *link* no WhatsApp para um novo.",
+    codeExpired: "O código expirou. Envie *link* no WhatsApp para um novo.",
+    tooManyAttempts: "Muitos códigos incorretos. Envie *link* no WhatsApp para um novo link.",
+    wrongCode: "Código incorreto. Verifique o WhatsApp e tente novamente.",
+    keysRejected: "A Alpaca rejeitou essas chaves. Copie-as novamente do painel paper.",
+    alpacaDown: "Não foi possível conectar à Alpaca. Tente novamente em instantes.",
+    connectedPage: "Conectado. Você pode fechar esta página e voltar ao WhatsApp.",
+    formTitle: "Conectar Alpaca (paper)",
+    formCode: "Código do WhatsApp",
+    formKeyId: "API Key ID",
+    formSecret: "API Secret",
+    formButton: "Conectar",
+    formFootnote: "As chaves são criptografadas e nunca mais são exibidas. Use apenas chaves paper."
   }
 };
 
+/* ============================================================
+ * WORKER ENTRY
+ * ============================================================ */
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -164,9 +235,7 @@ export default {
     if (request.method === "POST" && url.pathname.includes("/webhook")) {
       try {
         const payload = await request.json();
-        const entry = payload?.entry?.[0];
-        const change = entry?.changes?.[0];
-        const value = change?.value;
+        const value = payload?.entry?.[0]?.changes?.[0]?.value;
 
         if (value?.statuses) {
           return new Response("OK", { status: 200 });
@@ -208,13 +277,23 @@ export default {
       }
     }
 
+    // 3. BROKER LINKING PAGE (browser, not WhatsApp)
+    if (url.pathname.startsWith("/link/")) {
+      try {
+        return await handleLinkRoute(request, url, env);
+      } catch (err) {
+        console.error("Link route failed:", err?.stack || err);
+        return htmlPage(LANGUAGES.EN ? "Something went wrong. Try again." : "", 500);
+      }
+    }
+
     return new Response("Not Found", { status: 404 });
   }
 };
 
-/**
- * Dialogue routing: hello → language → main menu → balance | prices | trade
- */
+/* ============================================================
+ * DIALOGUE ROUTING
+ * ============================================================ */
 async function handleStateEngine(phone, input, env) {
   // Closed beta: unknown numbers get no response (no balance leaks, no spam cost)
   if (!isAllowedPhone(phone, env)) return;
@@ -234,6 +313,11 @@ async function handleStateEngine(phone, input, env) {
     session.step = "MENU";
     await saveSession(phone, session, env);
     await sendWhatsApp(phone, LANGUAGES[session.lang].langSaved, env);
+    const linked = await getLink(phone, env);
+    if (!linked) {
+      await sendWhatsApp(phone, FLOW[session.lang].notLinked, env);
+      return sendLinkPrompt(phone, session.lang, env);
+    }
     return sendMainMenu(
       phone, session.lang, env,
       LANGUAGES[session.lang].welcome + "\n\n" + FLOW[session.lang].menuPrompt
@@ -255,6 +339,15 @@ async function handleStateEngine(phone, input, env) {
     session.step = "MENU";
     await saveSession(phone, session, env);
     return sendMainMenu(phone, lang, env, dict.welcome + "\n\n" + f.menuPrompt);
+  }
+
+  if (token === "LINK") {
+    return sendLinkPrompt(phone, lang, env);
+  }
+
+  if (token === "DISCONNECT") {
+    await deleteLink(phone, env);
+    return sendWhatsApp(phone, f.disconnected, env);
   }
 
   // 4. Step router
@@ -327,63 +420,53 @@ async function handleStateEngine(phone, input, env) {
   }
 }
 
-/**
- * Account balance: cash, margin available, total value, positions
- */
+/* ============================================================
+ * ACCOUNT BALANCE (per-user Alpaca keys)
+ * ============================================================ */
 async function showBalance(phone, lang, env) {
   const f = FLOW[lang];
   const dict = LANGUAGES[lang];
-  const base = alpacaBase(tradingMode());
-  const headers = alpacaHeaders(env);
+
+  const link = await getLink(phone, env);
+  if (!link) {
+    await sendWhatsApp(phone, f.notLinked, env);
+    return sendLinkPrompt(phone, lang, env);
+  }
 
   try {
-    const [accRes, posRes] = await Promise.all([
-      fetch(base + "/v2/account", { headers }),
-      fetch(base + "/v2/positions", { headers })
-    ]);
-
-    if (!accRes.ok || !posRes.ok) {
-      await sendWhatsApp(phone, dict.feedError, env);
-      return;
-    }
-
-    const acc = await accRes.json();
-    const positions = await posRes.json();
-
-    const cash = parseFloat(acc.cash);
-    const buyingPower = parseFloat(acc.buying_power);
-    // Margin available = buying power not covered by positive cash.
-    // A negative cash balance (margin loan) must not inflate this figure.
-    const marginAvailable = Math.max(buyingPower - Math.max(cash, 0), 0);
-    const total = parseFloat(acc.portfolio_value || acc.equity);
+    const creds = await decryptCredentials(link.enc, env);
+    const acc = await alpacaGetAccount(creds, link.mode);
+    const positions = await alpacaGetPositions(creds, link.mode);
 
     let msg = f.balanceTitle + "\n\n";
-    msg += "💵 *" + f.cash + ":* " + fmtUSD(cash, lang) + "\n";
-    msg += "🏦 *" + f.margin + ":* " + fmtUSD(marginAvailable, lang) + "\n";
-    msg += "📊 *" + f.total + ":* " + fmtUSD(total, lang) + "\n\n";
+    msg += "💵 *" + f.cash + ":* " + fmtUSD(acc.cash, lang) + "\n";
+    msg += "🏦 *" + f.margin + ":* " + fmtUSD(acc.marginAvailable, lang) + "\n";
+    msg += "📊 *" + f.total + ":* " + fmtUSD(acc.total, lang) + "\n\n";
     msg += f.assets + "\n";
 
     if (positions.length === 0) {
       msg += f.noAssets;
     } else {
       positions.forEach((p) => {
-        const icon = p.asset_class === "us_option" ? "📄" : "📈";
-        msg += icon + " `" + p.symbol + "` · " + p.qty + " · "
-          + fmtUSD(parseFloat(p.market_value), lang) + "\n";
+        const icon = p.assetClass === "us_option" ? "📄" : "📈";
+        msg += icon + " `" + p.symbol + "` · " + p.qty + " · " + fmtUSD(p.marketValue, lang) + "\n";
       });
     }
 
     await sendWhatsApp(phone, msg, env);
     return sendMainMenu(phone, lang, env, f.menuPrompt);
   } catch (err) {
-    console.error("Balance fetch failed:", err);
+    console.error("Balance fetch failed:", err?.kind || err);
+    if (err?.kind === "AUTH") {
+      return sendWhatsApp(phone, f.authRejected, env);
+    }
     await sendWhatsApp(phone, dict.feedError, env);
   }
 }
 
-/**
- * Menus
- */
+/* ============================================================
+ * MENUS
+ * ============================================================ */
 function sendLanguageMenu(phone, env) {
   return sendWhatsAppButtons(phone, LANG_PROMPT, [
     { id: "LANG_EN", title: "English" },
@@ -416,13 +499,13 @@ function fmtUSD(n, lang) {
     .format(Number.isFinite(n) ? n : 0);
 }
 
-/**
- * Trading mode and Alpaca connection
- */
-function tradingMode(session) {
+/* ============================================================
+ * TRADING MODE AND ALPACA CONNECTION
+ * ============================================================ */
+function tradingMode() {
   // MVP: paper only.
-  // Phase 2: return session?.mode === "paper" ? "paper" : "live";
-  return "paper";
+  // Phase 2: read a per-user setting and default to live.
+  return TRADING_MODE_DEFAULT;
 }
 
 function alpacaBase(mode) {
@@ -431,7 +514,8 @@ function alpacaBase(mode) {
     : "https://paper-api.alpaca.markets";
 }
 
-function alpacaHeaders(env) {
+// Server-side read-only key for public market data (quotes, option chains).
+function serverAlpacaHeaders(env) {
   return {
     "APCA-API-KEY-ID": env.ALPACA_KEY_ID,
     "APCA-API-SECRET-KEY": env.ALPACA_SECRET_KEY,
@@ -439,18 +523,67 @@ function alpacaHeaders(env) {
   };
 }
 
-/**
- * Live Stock Quote Data and OTM Call Option Pricing Logic
- * (Current derivative capability: nearest OTM calls with live option bids.
- *  Retained as-is for the MVP. The covered call flow will build on this.)
- */
+// Per-user Alpaca request. Throws BrokerError on auth or upstream failure.
+class BrokerError extends Error {
+  constructor(kind, status) {
+    super(kind + ":" + status);
+    this.kind = kind;     // "AUTH" | "UPSTREAM"
+    this.status = status;
+  }
+}
+
+async function alpacaUserGet(creds, mode, path) {
+  const res = await fetch(alpacaBase(mode) + path, {
+    headers: {
+      "APCA-API-KEY-ID": creds.keyId,
+      "APCA-API-SECRET-KEY": creds.secret,
+      "Accept": "application/json"
+    }
+  });
+  if (res.status === 401 || res.status === 403) throw new BrokerError("AUTH", res.status);
+  if (!res.ok) throw new BrokerError("UPSTREAM", res.status);
+  return res.json();
+}
+
+async function alpacaValidate(creds, mode) {
+  const acc = await alpacaUserGet(creds, mode, "/v2/account");
+  if (acc.status && acc.status !== "ACTIVE") throw new BrokerError("UPSTREAM", 200);
+  return true;
+}
+
+async function alpacaGetAccount(creds, mode) {
+  const acc = await alpacaUserGet(creds, mode, "/v2/account");
+  const cash = parseFloat(acc.cash);
+  const buyingPower = parseFloat(acc.buying_power);
+  return {
+    cash,
+    // Margin available = buying power not covered by positive cash.
+    // A negative cash balance (margin loan) must not inflate this figure.
+    marginAvailable: Math.max(buyingPower - Math.max(cash, 0), 0),
+    total: parseFloat(acc.portfolio_value || acc.equity)
+  };
+}
+
+async function alpacaGetPositions(creds, mode) {
+  const list = await alpacaUserGet(creds, mode, "/v2/positions");
+  return list.map((p) => ({
+    symbol: p.symbol,
+    qty: p.qty,
+    marketValue: parseFloat(p.market_value),
+    assetClass: p.asset_class
+  }));
+}
+
+/* ============================================================
+ * LIVE QUOTE AND OTM CALL LOOKUP (derivative capability, retained)
+ * ============================================================ */
 async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
   if (!ticker || ticker.length > 5) {
     await sendWhatsApp(phone, dict.invalidTicker, env);
     return;
   }
 
-  const authHeaders = alpacaHeaders(env);
+  const authHeaders = serverAlpacaHeaders(env);
   const apiBase = alpacaBase(tradingMode());
 
   try {
@@ -547,9 +680,9 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
   }
 }
 
-/**
- * Market hours helpers (US equities, Eastern Time)
- */
+/* ============================================================
+ * MARKET HOURS (US equities, Eastern Time)
+ * ============================================================ */
 function easternParts(date) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: MARKET_TZ,
@@ -618,9 +751,214 @@ function buildMarketFooter(dict, status, langCode) {
   return footer;
 }
 
-/**
- * Shared infrastructure: allowlist, session storage, WhatsApp messaging
- */
+/* ============================================================
+ * LINKING: send link, verify WhatsApp code, validate and store keys
+ * ============================================================ */
+async function sendLinkPrompt(phone, lang, env) {
+  const token = randomHex(32);                 // 256-bit, shown once in the URL
+  const hash = await sha256Hex(token);         // only the hash is stored
+  await env.USER_SESSIONS.put("link:" + hash, JSON.stringify({ phone }), { expirationTtl: 600 });
+  const url = env.PUBLIC_BASE_URL + "/link/" + token;
+  return sendWhatsApp(phone, FLOW[lang].linkPrompt.replace("{url}", url), env);
+}
+
+async function handleLinkRoute(request, url, env) {
+  const f = (lang) => FLOW[lang];
+  const token = url.pathname.split("/")[2] || "";
+  if (!/^[0-9a-f]{64}$/.test(token)) return htmlPage(FLOW.EN.linkInvalid, 404);
+
+  const hash = await sha256Hex(token);
+  const pending = await env.USER_SESSIONS.get("link:" + hash, { type: "json" });
+  if (!pending) return htmlPage(FLOW.EN.linkExpired, 410);
+
+  const phone = pending.phone;
+  const lang = (await loadSession(phone, env)).lang || "EN";
+  const t = f(lang);
+
+  if (request.method === "GET") {
+    const otp = await env.USER_SESSIONS.get("otp:" + phone, { type: "json" });
+    if (!otp) {
+      const sent = await issueOtp(phone, lang, env);
+      if (!sent) return htmlPage(t.otpLimit, 429);
+    }
+    return linkFormPage(token, lang, "");
+  }
+
+  if (request.method === "POST") {
+    const form = await request.formData();
+    const code = String(form.get("code") || "").replace(/\D/g, "").slice(0, 6);
+    const creds = {
+      keyId: String(form.get("keyId") || "").trim().slice(0, 200),
+      secret: String(form.get("secret") || "").trim().slice(0, 200)
+    };
+    const mode = tradingMode(); // MVP: paper only
+
+    // 1. Verify the WhatsApp code
+    const otp = await env.USER_SESSIONS.get("otp:" + phone, { type: "json" });
+    if (!otp) return htmlPage(t.codeExpired, 410);
+
+    if (otp.attempts >= 5) {
+      await burnLink(hash, phone, env);
+      return htmlPage(t.tooManyAttempts, 429);
+    }
+
+    const submitted = await sha256Hex(phone + ":" + code);
+    if (!safeEqual(submitted, otp.codeHash)) {
+      otp.attempts += 1;
+      await env.USER_SESSIONS.put("otp:" + phone, JSON.stringify(otp), { expirationTtl: 600 });
+      return linkFormPage(token, lang, t.wrongCode);
+    }
+
+    // 2. Validate the Alpaca keys before storing anything
+    try {
+      await alpacaValidate(creds, mode);
+    } catch (err) {
+      const msg = err?.kind === "AUTH" ? t.keysRejected : t.alpacaDown;
+      return linkFormPage(token, lang, msg);
+    }
+
+    // 3. Encrypt and store, then burn the one-time link and code
+    const enc = await encryptCredentials(creds, env);
+    await saveLink(phone, {
+      broker: "alpaca",
+      mode,
+      enc,
+      linkedAt: new Date().toISOString(),
+      keyTail: creds.keyId.slice(-4)
+    }, env);
+
+    await burnLink(hash, phone, env);
+    await sendWhatsApp(phone, t.linkedOk, env);
+    return htmlPage(t.connectedPage, 200);
+  }
+
+  return new Response("Method Not Allowed", { status: 405 });
+}
+
+async function issueOtp(phone, lang, env) {
+  // Rate limit: 3 codes per phone per hour
+  const rlKey = "rl:otp:" + phone;
+  const rl = (await env.USER_SESSIONS.get(rlKey, { type: "json" })) || { n: 0 };
+  if (rl.n >= 3) return false;
+  await env.USER_SESSIONS.put(rlKey, JSON.stringify({ n: rl.n + 1 }), { expirationTtl: 3600 });
+
+  const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+  const codeHash = await sha256Hex(phone + ":" + code);
+  await env.USER_SESSIONS.put("otp:" + phone, JSON.stringify({ codeHash, attempts: 0 }), { expirationTtl: 600 });
+  await sendWhatsApp(phone, FLOW[lang].otpMessage.replace("{code}", code), env);
+  return true;
+}
+
+async function burnLink(hash, phone, env) {
+  await env.USER_SESSIONS.delete("link:" + hash);
+  await env.USER_SESSIONS.delete("otp:" + phone);
+}
+
+function linkFormPage(token, lang, notice) {
+  const t = FLOW[lang] || FLOW.EN;
+  const body = `<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(t.formTitle)}</title></head>
+<body style="font-family:system-ui;max-width:420px;margin:40px auto;padding:0 16px">
+<h2>${esc(t.formTitle)}</h2>
+${notice ? `<p>${esc(notice)}</p>` : ""}
+<form method="POST" action="">
+  <label>${esc(t.formCode)}
+    <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+  </label>
+  <label>${esc(t.formKeyId)}
+    <input name="keyId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+  </label>
+  <label>${esc(t.formSecret)}
+    <input name="secret" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+  </label>
+  <p><button type="submit">${esc(t.formButton)}</button></p>
+</form>
+<p style="font-size:12px;color:#666">${esc(t.formFootnote)}</p>
+</body></html>`;
+  return htmlPage(body, 200, true);
+}
+
+function htmlPage(content, status = 200, isDocument = false) {
+  const body = isDocument ? content
+    : `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui;max-width:420px;margin:40px auto;padding:0 16px"><p>${esc(content)}</p></body></html>`;
+  return new Response(body, {
+    status,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff"
+    }
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/* ============================================================
+ * CREDENTIAL STORE AND CRYPTO
+ * ============================================================ */
+// Record per phone: { broker, mode, enc: { iv, ct }, linkedAt, keyTail }
+async function getLink(phone, env) {
+  return (await env.USER_SESSIONS.get("cred:" + phone, { type: "json" })) || null;
+}
+
+async function saveLink(phone, record, env) {
+  await env.USER_SESSIONS.put("cred:" + phone, JSON.stringify(record));
+}
+
+async function deleteLink(phone, env) {
+  await env.USER_SESSIONS.delete("cred:" + phone);
+}
+
+async function getCryptoKey(env) {
+  const raw = Uint8Array.from(atob(env.CREDENTIAL_KEY), (c) => c.charCodeAt(0)); // 32 bytes
+  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+
+async function encryptCredentials(obj, env) {
+  const key = await getCryptoKey(env);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = new TextEncoder().encode(JSON.stringify(obj));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+  return {
+    iv: btoa(String.fromCharCode(...iv)),
+    ct: btoa(String.fromCharCode(...new Uint8Array(ct)))
+  };
+}
+
+async function decryptCredentials(stored, env) {
+  const key = await getCryptoKey(env);
+  const iv = Uint8Array.from(atob(stored.iv), (c) => c.charCodeAt(0));
+  const ct = Uint8Array.from(atob(stored.ct), (c) => c.charCodeAt(0));
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+function randomHex(bytes) {
+  return [...crypto.getRandomValues(new Uint8Array(bytes))]
+    .map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(s) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/* ============================================================
+ * SESSIONS, ALLOWLIST, WHATSAPP MESSAGING
+ * ============================================================ */
 function isAllowedPhone(phone, env) {
   // ALLOWED_PHONES = "15551234567,34600111222" (digits only, as Meta sends them)
   const list = (env.ALLOWED_PHONES || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -630,7 +968,7 @@ function isAllowedPhone(phone, env) {
 async function loadSession(phone, env) {
   try {
     if (env.USER_SESSIONS) {
-      const s = await env.USER_SESSIONS.get(phone, { type: "json" });
+      const s = await env.USER_SESSIONS.get("sess:" + phone, { type: "json" });
       if (s) return s;
     }
   } catch (err) {
@@ -642,7 +980,7 @@ async function loadSession(phone, env) {
 async function saveSession(phone, session, env) {
   try {
     if (env.USER_SESSIONS) {
-      await env.USER_SESSIONS.put(phone, JSON.stringify(session));
+      await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session));
     }
   } catch (err) {
     console.error("KV write failed:", err);
