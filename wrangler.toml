@@ -18,6 +18,11 @@ ALPACA_PAPER_TRADING = "true"
 binding = "USER_SESSIONS"
 id = "b7261f8c0f2b4b098d96b5cbf787cf77"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "whatsapp-trader"
+database_id = "19ed6721-6873-4a4f-a673-14ecf130d695"
+
 # ...
 [observability.logs]
 enabled = true
