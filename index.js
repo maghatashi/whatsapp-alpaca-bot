@@ -264,7 +264,7 @@ export default {
     // 3. Broker linking page (opened in a browser from WhatsApp)
     if (url.pathname.startsWith("/link/")) {
       try {
-        return await handleLinkRoute(request, url, env);
+        return await handleLinkRoute(request, url, env, ctx);
       } catch (err) {
         console.error("Link route failed:", err?.stack || err);
         return htmlPage("Something went wrong. Try again.", 500);
@@ -772,7 +772,7 @@ async function sendLinkPrompt(phone, lang, env) {
   return sendWhatsApp(phone, FLOW[lang].linkPrompt.replace("{url}", url), env);
 }
 
-async function handleLinkRoute(request, url, env) {
+async function handleLinkRoute(request, url, env, ctx) {
   const token = url.pathname.split("/")[2] || "";
   if (!/^[0-9a-f]{64}$/.test(token)) return htmlPage(FLOW.EN.linkInvalid, 404);
 
@@ -788,8 +788,13 @@ async function handleLinkRoute(request, url, env) {
   if (request.method === "GET") {
     const otp = await env.USER_SESSIONS.get("otp:" + phone, { type: "json" });
     if (!otp) {
-      const sent = await issueOtp(phone, lang, env);
-      if (!sent) return htmlPage(t.otpLimit, 429);
+      const code = await reserveOtp(phone, env);       // fast, KV-only
+      if (!code) return htmlPage(t.otpLimit, 429);
+      // Send in the background; do NOT block the page render on Meta.
+      ctx.waitUntil(
+        sendWhatsApp(phone, t.otpMessage.replace("{code}", code), env)
+          .catch((err) => console.error("OTP WhatsApp send failed:", err))
+      );
     }
     return linkFormPage(lang, "");
   }
@@ -844,18 +849,16 @@ async function handleLinkRoute(request, url, env) {
   return new Response("Method Not Allowed", { status: 405 });
 }
 
-async function issueOtp(phone, lang, env) {
-  // Rate limit: 3 codes per phone per hour
+async function reserveOtp(phone, env) {
   const rlKey = "rl:otp:" + phone;
   const rl = (await env.USER_SESSIONS.get(rlKey, { type: "json" })) || { n: 0 };
-  if (rl.n >= 3) return false;
+  if (rl.n >= 3) return null;
   await env.USER_SESSIONS.put(rlKey, JSON.stringify({ n: rl.n + 1 }), { expirationTtl: 3600 });
 
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
   const codeHash = await sha256Hex(phone + ":" + code);
   await env.USER_SESSIONS.put("otp:" + phone, JSON.stringify({ codeHash, attempts: 0 }), { expirationTtl: 600 });
-  await sendWhatsApp(phone, FLOW[lang].otpMessage.replace("{code}", code), env);
-  return true;
+  return code;
 }
 
 async function burnLink(hash, phone, env) {
@@ -955,22 +958,31 @@ async function sha256Hex(s) {
 /* ============================================================
  * WHATSAPP MESSAGING
  * ============================================================ */
-async function postToMeta(payload, env) {
+async function postToMeta(payload, env, timeoutMs = 8000) {
   const metaUrl = "https://graph.facebook.com/" + GRAPH_API_VERSION + "/"
     + env.WHATSAPP_PHONE_NUMBER_ID + "/messages";
-  const res = await fetch(metaUrl, {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + env.META_ACCESS_TOKEN,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-  if (!res.ok) {
-    console.error("WhatsApp send failed:", res.status, await res.text());
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(metaUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + env.META_ACCESS_TOKEN,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      console.error("WhatsApp send failed:", res.status, await res.text());
+    }
+  } catch (err) {
+    console.error("WhatsApp send error:", err?.name || err?.message || err);
+  } finally {
+    clearTimeout(timer);
   }
 }
-
 function sendWhatsApp(to, message, env) {
   return postToMeta({
     messaging_product: "whatsapp",
