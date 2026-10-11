@@ -267,7 +267,7 @@ export default {
         return await handleLinkRoute(request, url, env, ctx);
       } catch (err) {
         console.error("Link route failed:", err?.stack || err);
-        return htmlPage("Something went wrong. Try again.", 500);
+        return htmlPage("Debug: " + (err?.message || String(err)), 500);
       }
     }
 
