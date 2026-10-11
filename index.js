@@ -868,26 +868,164 @@ async function burnLink(hash, phone, env) {
 
 function linkFormPage(lang, notice) {
   const t = FLOW[lang] || FLOW.EN;
-  const body = `<!doctype html><html><head><meta charset="utf-8">
+  const body = `<!doctype html>
+<html lang="${esc(lang.toLowerCase())}">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(t.formTitle)}</title></head>
-<body style="font-family:system-ui;max-width:420px;margin:40px auto;padding:0 16px">
-<h2>${esc(t.formTitle)}</h2>
-${notice ? `<p>${esc(notice)}</p>` : ""}
-<form method="POST" action="">
-  <label>${esc(t.formCode)}
-    <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
-  </label>
-  <label>${esc(t.formKeyId)}
-    <input name="keyId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required>
-  </label>
-  <label>${esc(t.formSecret)}
-    <input name="secret" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
-  </label>
-  <p><button type="submit">${esc(t.formButton)}</button></p>
-</form>
-<p style="font-size:12px;color:#666">${esc(t.formFootnote)}</p>
-</body></html>`;
+<title>${esc(t.formTitle)}</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --border: #262b36;
+    --text: #e6e9ef;
+    --muted: #8b93a3;
+    --accent: #22c55e;
+    --accent-hover: #1ea34d;
+    --error-bg: #2a1416;
+    --error-border: #5a1f24;
+    --error-text: #fca5a5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.35);
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 22px;
+  }
+  .notice {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    color: var(--error-text);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 0 0 18px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: #0d1016;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  }
+  .field input::placeholder { color: #4b5261; }
+  #code {
+    font-size: 22px;
+    letter-spacing: .35em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 12px 12px 12px 16px;
+  }
+  button {
+    width: 100%;
+    padding: 12px 16px;
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #06120a;
+    background: var(--accent);
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background .15s, transform .05s;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:active { transform: translateY(1px); }
+  .footnote {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 18px 0 0;
+    line-height: 1.5;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1>${esc(t.formTitle)}</h1>
+    <p class="subtitle">${esc(t.formCode === "WhatsApp code" ? "Confirm it's you, then paste your Alpaca paper keys." : t.formCode)}</p>
+
+    ${notice ? `<div class="notice">${esc(notice)}</div>` : ""}
+
+    <form method="POST" action="" autocomplete="off">
+      <div class="field">
+        <label for="code">${esc(t.formCode)}</label>
+        <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" pattern="[0-9]*" placeholder="000000" required autofocus>
+      </div>
+
+      <div class="field">
+        <label for="keyId">${esc(t.formKeyId)}</label>
+        <input id="keyId" name="keyId" type="text" autocomplete="off"
+               autocapitalize="off" autocorrect="off" spellcheck="false"
+               placeholder="PKXXXXXXXXXXXXXXXXXX" required>
+      </div>
+
+      <div class="field">
+        <label for="secret">${esc(t.formSecret)}</label>
+        <input id="secret" name="secret" type="password" autocomplete="off"
+               autocapitalize="off" autocorrect="off" spellcheck="false"
+               placeholder="••••••••••••••••••••••••••••••" required>
+      </div>
+
+      <button type="submit">${esc(t.formButton)}</button>
+    </form>
+
+    <p class="footnote">${esc(t.formFootnote)}</p>
+  </main>
+</body>
+</html>`;
   return htmlPage(body, 200, true);
 }
 
