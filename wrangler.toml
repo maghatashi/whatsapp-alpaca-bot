@@ -5,6 +5,7 @@ compatibility_date = "2024-12-18"
 # 🟢 CONFIGURATION VARIABLES (Safe for Git)
 [vars]
 ALPACA_PAPER_TRADING = "true" 
+PUBLIC_BASE_URL = "https://whatsapp-alpaca-bot.maghatashi.workers.dev"
 
 # 🔒 DASHBOARD SECRETS NOTE (Do not paste values here, keep them in your Cloudflare dashboard):
 # - META_ACCESS_TOKEN
