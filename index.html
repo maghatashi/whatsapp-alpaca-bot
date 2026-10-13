@@ -809,9 +809,16 @@ async function loadWhatsAppConfig() {
 
     const config = await response.json();
 
-    if (!configureWhatsApp(config.Whatsapp_Phone_Number)) {
-      throw new Error("Whatsapp_Phone_Number is missing or invalid");
-    }
+console.log("KokuTrade public config:", config);
+console.log("Available config keys:", Object.keys(config));
+
+const phone = config.Whatsapp_Phone_Number;
+
+if (!configureWhatsApp(phone)) {
+  throw new Error(
+    "Missing or invalid Whatsapp_Phone_Number. Check the Worker response."
+  );
+}
 
     status.dataset.error = "false";
     status.textContent = "";
