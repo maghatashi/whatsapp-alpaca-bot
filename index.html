@@ -696,6 +696,10 @@ function applyLanguage(language) {
   const dictionary = translations[lang];
 
   currentLanguage = lang;
+
+if (whatsappDigits) {
+  configureWhatsApp(whatsappDigits);
+}
   document.documentElement.lang = lang;
   document.title = dictionary.pageTitle;
 
@@ -782,7 +786,15 @@ function configureWhatsApp(rawNumber) {
 
   whatsappDigits = digits;
 
-  const message = encodeURIComponent("Hi");
+  const greetings = {
+    en: "Hello",
+    es: "Hola",
+    pt: "Olá"
+  };
+
+  const message = encodeURIComponent(
+    greetings[currentLanguage] || greetings.en
+  );
 
   document.querySelectorAll(".whatsapp-cta").forEach(button => {
     button.href = `https://wa.me/${whatsappDigits}?text=${message}`;
