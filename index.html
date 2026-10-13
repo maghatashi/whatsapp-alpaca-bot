@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -384,6 +383,23 @@ footer {
   .language-selector button { padding: 5px 6px; }
   .modal-panel { padding: 20px; }
 }
+  
+.language-selector button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.flag-icon {
+  display: block;
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -401,12 +417,19 @@ footer {
     <img src="/kokusymbol.png" alt="" class="logo-icon">
     Koku<span>Trade</span>
   </a>
+  
+<nav class="language-selector" aria-label="Page language" id="languageSelector">
+  <button type="button" data-lang="en" aria-label="English" aria-pressed="true" class="active">
+    <img src="/flags/gb.svg" alt="" class="flag-icon"> EN
+  </button>
+  <button type="button" data-lang="es" aria-label="Español" aria-pressed="false">
+    <img src="/flags/es.svg" alt="" class="flag-icon"> ES
+  </button>
+  <button type="button" data-lang="pt" aria-label="Português" aria-pressed="false">
+    <img src="/flags/br.svg" alt="" class="flag-icon"> PT
+  </button>
+</nav>
 
-  <nav class="language-selector" aria-label="Page language" id="languageSelector">
-    <button type="button" data-lang="en" class="active" aria-pressed="true">EN</button>
-    <button type="button" data-lang="es" aria-pressed="false">ES</button>
-    <button type="button" data-lang="pt" aria-pressed="false">PT</button>
-  </nav>
 </header>
 
 <main>
