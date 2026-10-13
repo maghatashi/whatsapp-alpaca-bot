@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f5ef">
+<title>KokuTrade — Start Trading on WhatsApp</title>
+<meta name="description" content="Set up your free Alpaca paper-trading account and connect with KokuTrade on WhatsApp in three simple steps.">
+
+<style>
+:root {
+  --cream: #f7f5ef;
+  --green: #203d35;
+  --sage: #e5ebe3;
+  --gold: #c6a563;
+  --muted: #69756e;
+  --white: #fff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--green);
+  font-family: Inter, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+a { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; }
+.container { width: min(1080px, 90%); margin: auto; }
+header {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e2d9;
+}
+.logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -.7px; }
+.logo span { color: #a17c35; }
+.pill {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  background: var(--sage);
+  padding: 7px 12px;
+  border-radius: 30px;
+}
+.hero {
+  text-align: center;
+  padding: 76px 0 54px;
+  max-width: 760px;
+  margin: auto;
+}
+.eyebrow {
+  color: #92753e;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: .75rem;
+  font-weight: 800;
+}
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.06;
+  letter-spacing: -.055em;
+  margin: 18px 0;
+}
+.hero p {
+  max-width: 590px;
+  margin: 0 auto 26px;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 8px;
+  padding: 14px 22px;
+  text-decoration: none;
+  font-weight: 750;
+  transition: transform .15s, opacity .15s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-whatsapp { background: #168653; color: white; }
+.btn-dark { background: var(--green); color: white; }
+.btn-light {
+  background: white;
+  border: 1px solid #dcded5;
+  color: var(--green);
+}
+.hero-note { font-size: .82rem !important; margin-top: 13px !important; }
+.steps { padding: 25px 0 80px; }
+.section-heading { text-align: center; margin-bottom: 32px; }
+.section-heading h2 { font-size: 2rem; letter-spacing: -.04em; margin: 5px 0; }
+.section-heading p { color: var(--muted); margin: 0; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.card {
+  background: white;
+  border: 1px solid #e8e6de;
+  border-radius: 14px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.number {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--sage);
+  font-weight: 800;
+}
+.card h3 { margin: 18px 0 6px; font-size: 1.22rem; }
+.card p { color: var(--muted); font-size: .94rem; margin: 0 0 17px; }
+.card .btn { margin-top: auto; width: 100%; font-size: .9rem; padding: 12px; }
+.key-preview {
+  width: 100%;
+  background: #f7f8f5;
+  border: 1px solid #e5e7df;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 17px;
+  font-size: .78rem;
+}
+.key-preview strong { display: block; margin-bottom: 8px; }
+.fake-row {
+  padding: 8px;
+  background: white;
+  border: 1px solid #e5e7df;
+  border-radius: 5px;
+  margin-top: 6px;
+}
+.fake-row span { color: var(--muted); }
+.fake-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 8px;
+  background: var(--green);
+  color: white;
+  border-radius: 4px;
+  font-size: .7rem;
+}
+.notice {
+  margin-top: 28px;
+  padding: 18px 20px;
+  background: #eeeae0;
+  border-radius: 10px;
+  color: #4f5e55;
+  font-size: .88rem;
+}
+footer {
+  border-top: 1px solid #e5e2d9;
+  padding: 25px 0;
+  color: var(--muted);
+  font-size: .8rem;
+}
+.footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+footer a { text-underline-offset: 3px; }
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  padding: 20px;
+  background: rgb(20 34 29 / 65%);
+  overflow-y: auto;
+  align-items: center;
+  justify-content: center;
+}
+.modal.open { display: flex; }
+.modal-panel {
+  width: min(540px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 70px #0003;
+}
+.modal-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.modal h2 { margin: 0 0 8px; letter-spacing: -.04em; }
+.modal p, .modal li { color: #59675f; font-size: .93rem; }
+.close {
+  border: 0;
+  background: #e8e8df;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.modal ol { padding-left: 22px; }
+.modal li { padding: 0 0 10px 4px; }
+.warning {
+  background: #f0e8d7;
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+  padding: 12px;
+  font-size: .86rem;
+}
+.modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .hero { padding: 54px 0 36px; }
+  .cards { grid-template-columns: 1fr; }
+  .card { padding: 22px; }
+  .footer-inner { flex-direction: column; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<header class="container">
+  <a class="logo" href="#" aria-label="KokuTrade home"
+     style="text-decoration:none">Koku<span>Trade</span></a>
+  <span class="pill">PAPER TRADING</span>
+</header>
+
+<main>
+  <section class="hero container">
+    <div class="eyebrow">Your trading journey, simplified</div>
+    <h1>Trading starts with a simple conversation.</h1>
+    <p>
+      Set up your free Alpaca paper account, connect your API keys,
+      and get started with KokuTrade directly on WhatsApp.
+    </p>
+    <a class="btn btn-whatsapp" id="heroCta" href="#">
+      <span aria-hidden="true">◉</span> Start on WhatsApp →
+    </a>
+    <p class="hero-note">No real money required for paper trading.</p>
+  </section>
+
+  <section class="steps container">
+    <div class="section-heading">
+      <div class="eyebrow">Three simple steps</div>
+      <h2>Get started with KokuTrade</h2>
+      <p>No complicated setup. Just follow the steps below.</p>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <div class="number">01</div>
+        <h3>Get an Alpaca paper account</h3>
+        <p>
+          Create your free Alpaca account and use its paper-trading
+          environment to get started without risking real money.
+        </p>
+        <a class="btn btn-dark" href="https://app.alpaca.markets/signup"
+           target="_blank" rel="noopener noreferrer">
+          Create free account ↗
+        </a>
+      </article>
+
+      <article class="card">
+        <div class="number">02</div>
+        <h3>Grab your API keys</h3>
+        <p>
+          Generate your paper-trading credentials. You'll need your
+          Key ID and Secret Key to connect your account.
+        </p>
+
+        <div class="key-preview" aria-label="Illustration of the Alpaca API keys area">
+          <strong>Alpaca dashboard · Paper account</strong>
+          <div class="fake-row"><span>API Keys</span></div>
+          <div class="fake-row"><span>Key ID</span> &nbsp; ••••••••</div>
+          <div class="fake-row"><span>Secret Key</span> &nbsp; ••••••••</div>
+          <span class="fake-button">Generate New Keys</span>
+        </div>
+
+        <button class="btn btn-dark" id="openModal" type="button">
+          Show me how →
+        </button>
+      </article>
+
+      <article class="card">
+        <div class="number">03</div>
+        <h3>Trade on WhatsApp</h3>
+        <p>
+          Open a conversation with KokuTrade and follow the bot's
+          instructions to connect and begin.
+        </p>
+        <a class="btn btn-whatsapp" id="stepCta" href="#">
+          Open WhatsApp →
+        </a>
+      </article>
+    </div>
+
+    <div class="notice">
+      <strong>Important:</strong> Paper trading is simulated and does not
+      guarantee results in live markets. Only use paper-trading API
+      credentials when connecting to a paper-trading bot. Never share
+      your Secret Key with another person or post it publicly.
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <span>© <span id="year"></span> KokuTrade</span>
+    <span>Paper trading involves simulated orders and results.</span>
+  </div>
+</footer>
+
+<div class="modal" id="keysModal" role="dialog"
+     aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-panel">
+    <div class="modal-top">
+      <div>
+        <div class="eyebrow">Setup guide</div>
+        <h2 id="modalTitle">How to get your Alpaca keys</h2>
+      </div>
+      <button class="close" id="closeModal" type="button"
+              aria-label="Close instructions">×</button>
+    </div>
+
+    <p>Follow these steps in your Alpaca paper-trading dashboard.</p>
+    <ol>
+      <li>
+        <strong>Open your paper account.</strong><br>
+        Sign in to Alpaca and switch to the paper-trading environment.
+      </li>
+      <li>
+        <strong>Click “Generate New Keys”.</strong><br>
+        Find the API Keys section in your paper-trading dashboard.
+      </li>
+      <li>
+        <strong>Copy both credentials.</strong><br>
+        Copy the Key ID and Secret Key to the secure connection flow
+        provided by your KokuTrade bot.
+      </li>
+    </ol>
+
+    <div class="warning">
+      <strong>Important:</strong> Your Secret Key may only be displayed
+      once. Copy and store it securely when it is generated. Do not
+      send it in an ordinary WhatsApp message unless your bot's
+      connection flow is explicitly designed and secured for credential
+      handling.
+    </div>
+
+    <div class="modal-actions">
+      <a class="btn btn-dark" href="https://app.alpaca.markets/"
+         target="_blank" rel="noopener noreferrer">
+        Open Alpaca ↗
+      </a>
+      <button class="btn btn-light" id="doneModal" type="button">
+        Got it
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+ * Replace this with your WhatsApp business/bot number.
+ * International format: digits only, no +, spaces, or dashes.
+ * Example format for Spain: 34XXXXXXXXX
+ */
+const WHATSAPP_NUMBER = "REPLACE_WITH_YOUR_NUMBER";
+
+const modal = document.getElementById("keysModal");
+const openButton = document.getElementById("openModal");
+const closeButton = document.getElementById("closeModal");
+const doneButton = document.getElementById("doneModal");
+
+function whatsappUrl() {
+  if (!/^\d{7,15}$/.test(WHATSAPP_NUMBER)) {
+    alert("KokuTrade's WhatsApp number has not been configured yet.");
+    return null;
+  }
+  return "https://wa.me/" + WHATSAPP_NUMBER +
+    "?text=" + encodeURIComponent("Hi");
+}
+
+function setWhatsAppLinks() {
+  ["heroCta", "stepCta"].forEach(id => {
+    document.getElementById(id).addEventListener("click", event => {
+      const url = whatsappUrl();
+      if (!url) {
+        event.preventDefault();
+        return;
+      }
+      event.currentTarget.href = url;
+    });
+  });
+}
+
+function openGuide() {
+  modal.classList.add("open");
+  closeButton.focus();
+}
+function closeGuide() {
+  modal.classList.remove("open");
+  openButton.focus();
+}
+
+openButton.addEventListener("click", openGuide);
+closeButton.addEventListener("click", closeGuide);
+doneButton.addEventListener("click", closeGuide);
+
+modal.addEventListener("click", event => {
+  if (event.target === modal) closeGuide();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && modal.classList.contains("open")) {
+    closeGuide();
+  }
+});
+
+document.getElementById("year").textContent = new Date().getFullYear();
+setWhatsAppLinks();
+</script>
+</body>
+</html>
