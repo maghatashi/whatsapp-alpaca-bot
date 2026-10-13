@@ -120,8 +120,58 @@ const FLOW = {
     formKeyId: "API Key ID",
     formSecret: "API Secret",
     formButton: "Connect",
-    formFootnote: "Keys are encrypted and never shown again. Use paper keys only."
+    formFootnote: "Keys are encrypted and never shown again. Use paper keys only.",
+
+    // === Buy/Sell flow (new) ===
+    assetAskSide: "Buy or sell?",
+    btnBuy: "Buy",
+    btnSell: "Sell",
+
+    assetAskTicker: "Send the ticker symbol (e.g. _NVDA_).",
+    assetInvalidTicker: "That symbol isn't tradable. Try another.",
+    assetNoPosition: "You don't hold *{ticker}*. Short selling isn't supported yet.",
+    assetFetchFailed: "⚠️ Couldn't check that symbol right now. Try again shortly.",
+
+    assetAskQtyMode: "Buy by shares or by dollar amount?",
+    btnShares: "Shares",
+    btnAmount: "Amount",
+
+    assetAskQtyShares: "How many shares?",
+    assetAskQtySell: "How many shares to sell? Send *MAX* to sell your full position.",
+    assetAskQtyAmount: "How much in dollars? (e.g. _1000_ or _$1000_)",
+
+    assetInvalidQty: "Invalid quantity. Send a whole number of shares (e.g. _10_).",
+    assetInvalidAmount: "Invalid amount. Send a dollar figure (e.g. _1000_).",
+    assetQtyTooSmall: "That amount is below the price of one share (~${price}). Try a larger amount.",
+
+    assetAskOrderType: "Order type?",
+    btnMarket: "Market",
+    btnLimit: "Limit",
+
+    assetAskLimit: "Send your limit price (e.g. _123.45_).",
+    assetInvalidLimit: "Invalid price. Send a number like _123.45_.",
+    assetLimitOffBand: "That price is more than 50% away from the last trade (${last}). Try again.",
+
+    assetConfirmTitle: "📋 *Order Preview*",
+    assetConfirmSide: "Side",
+    assetConfirmSymbol: "Symbol",
+    assetConfirmQty: "Quantity",
+    assetConfirmType: "Type",
+    assetConfirmLimit: "Limit price",
+    assetConfirmEstCost: "Est. cost",
+    assetConfirmEstProc: "Est. proceeds",
+    assetConfirmMarketWarn: "⚠️ Market is closed. This order will queue for the next open.",
+    assetConfirmPrompt: "Tap *Confirm* to submit or *Cancel* to abort.",
+    btnConfirm: "Confirm",
+    btnCancel: "Cancel",
+
+    assetConfirmExpired: "Preview expired. Send your order again.",
+    assetProcessing: "⏳ Your order is being processed. One moment.",
+    assetSubmitted: "✅ Order submitted.\n\n• ID: `{id}`\n• Status: {status}",
+    assetFailed: "⚠️ Order rejected: {reason}",
+    assetFailedGeneric: "⚠️ Order could not be submitted. Try again shortly."
   },
+
   ES: {
     menuPrompt: "¿Qué quieres hacer?",
     btnBalance: "Saldo de cuenta",
@@ -159,8 +209,58 @@ const FLOW = {
     formKeyId: "API Key ID",
     formSecret: "API Secret",
     formButton: "Conectar",
-    formFootnote: "Las claves se cifran y nunca se vuelven a mostrar. Usa solo claves paper."
+    formFootnote: "Las claves se cifran y nunca se vuelven a mostrar. Usa solo claves paper.",
+
+    // === Buy/Sell flow (new) ===
+    assetAskSide: "¿Comprar o vender?",
+    btnBuy: "Comprar",
+    btnSell: "Vender",
+
+    assetAskTicker: "Envía el símbolo (ej: _NVDA_).",
+    assetInvalidTicker: "Ese símbolo no es operable. Intenta otro.",
+    assetNoPosition: "No tienes *{ticker}*. La venta en corto aún no está soportada.",
+    assetFetchFailed: "⚠️ No se pudo verificar ese símbolo ahora. Intenta de nuevo.",
+
+    assetAskQtyMode: "¿Comprar por acciones o por monto en dólares?",
+    btnShares: "Acciones",
+    btnAmount: "Monto",
+
+    assetAskQtyShares: "¿Cuántas acciones?",
+    assetAskQtySell: "¿Cuántas acciones vender? Envía *MAX* para vender toda tu posición.",
+    assetAskQtyAmount: "¿Cuánto en dólares? (ej: _1000_ o _$1000_)",
+
+    assetInvalidQty: "Cantidad inválida. Envía un número entero de acciones (ej: _10_).",
+    assetInvalidAmount: "Monto inválido. Envía una cifra en dólares (ej: _1000_).",
+    assetQtyTooSmall: "Ese monto es menor al precio de una acción (~${price}). Intenta un monto mayor.",
+
+    assetAskOrderType: "¿Tipo de orden?",
+    btnMarket: "Mercado",
+    btnLimit: "Límite",
+
+    assetAskLimit: "Envía tu precio límite (ej: _123.45_).",
+    assetInvalidLimit: "Precio inválido. Envía un número como _123.45_.",
+    assetLimitOffBand: "Ese precio está a más del 50% de la última operación (${last}). Intenta de nuevo.",
+
+    assetConfirmTitle: "📋 *Vista Previa de Orden*",
+    assetConfirmSide: "Lado",
+    assetConfirmSymbol: "Símbolo",
+    assetConfirmQty: "Cantidad",
+    assetConfirmType: "Tipo",
+    assetConfirmLimit: "Precio límite",
+    assetConfirmEstCost: "Costo est.",
+    assetConfirmEstProc: "Ingreso est.",
+    assetConfirmMarketWarn: "⚠️ El mercado está cerrado. Esta orden se encolará para la próxima apertura.",
+    assetConfirmPrompt: "Toca *Confirmar* para enviar o *Cancelar* para abortar.",
+    btnConfirm: "Confirmar",
+    btnCancel: "Cancelar",
+
+    assetConfirmExpired: "La vista previa expiró. Envía tu orden de nuevo.",
+    assetProcessing: "⏳ Tu orden se está procesando. Un momento.",
+    assetSubmitted: "✅ Orden enviada.\n\n• ID: `{id}`\n• Estado: {status}",
+    assetFailed: "⚠️ Orden rechazada: {reason}",
+    assetFailedGeneric: "⚠️ No se pudo enviar la orden. Intenta de nuevo en un momento."
   },
+
   PT: {
     menuPrompt: "O que você gostaria de fazer?",
     btnBalance: "Saldo da conta",
@@ -198,7 +298,56 @@ const FLOW = {
     formKeyId: "API Key ID",
     formSecret: "API Secret",
     formButton: "Conectar",
-    formFootnote: "As chaves são criptografadas e nunca mais são exibidas. Use apenas chaves paper."
+    formFootnote: "As chaves são criptografadas e nunca mais são exibidas. Use apenas chaves paper.",
+
+    // === Buy/Sell flow (new) ===
+    assetAskSide: "Comprar ou vender?",
+    btnBuy: "Comprar",
+    btnSell: "Vender",
+
+    assetAskTicker: "Envie o símbolo (ex: _NVDA_).",
+    assetInvalidTicker: "Esse símbolo não é negociável. Tente outro.",
+    assetNoPosition: "Você não possui *{ticker}*. Venda a descoberto ainda não é suportada.",
+    assetFetchFailed: "⚠️ Não foi possível verificar esse símbolo agora. Tente novamente.",
+
+    assetAskQtyMode: "Comprar por ações ou por valor em dólares?",
+    btnShares: "Ações",
+    btnAmount: "Valor",
+
+    assetAskQtyShares: "Quantas ações?",
+    assetAskQtySell: "Quantas ações vender? Envie *MAX* para vender toda a posição.",
+    assetAskQtyAmount: "Quanto em dólares? (ex: _1000_ ou _$1000_)",
+
+    assetInvalidQty: "Quantidade inválida. Envie um número inteiro de ações (ex: _10_).",
+    assetInvalidAmount: "Valor inválido. Envie um número em dólares (ex: _1000_).",
+    assetQtyTooSmall: "Esse valor é menor que o preço de uma ação (~${price}). Tente um valor maior.",
+
+    assetAskOrderType: "Tipo de ordem?",
+    btnMarket: "Mercado",
+    btnLimit: "Limite",
+
+    assetAskLimit: "Envie seu preço limite (ex: _123.45_).",
+    assetInvalidLimit: "Preço inválido. Envie um número como _123.45_.",
+    assetLimitOffBand: "Esse preço está a mais de 50% do último negócio (${last}). Tente novamente.",
+
+    assetConfirmTitle: "📋 *Prévia da Ordem*",
+    assetConfirmSide: "Lado",
+    assetConfirmSymbol: "Símbolo",
+    assetConfirmQty: "Quantidade",
+    assetConfirmType: "Tipo",
+    assetConfirmLimit: "Preço limite",
+    assetConfirmEstCost: "Custo est.",
+    assetConfirmEstProc: "Receita est.",
+    assetConfirmMarketWarn: "⚠️ O mercado está fechado. Esta ordem entrará na fila para a próxima abertura.",
+    assetConfirmPrompt: "Toque em *Confirmar* para enviar ou *Cancelar* para abortar.",
+    btnConfirm: "Confirmar",
+    btnCancel: "Cancelar",
+
+    assetConfirmExpired: "A prévia expirou. Envie sua ordem novamente.",
+    assetProcessing: "⏳ Sua ordem está sendo processada. Um momento.",
+    assetSubmitted: "✅ Ordem enviada.\n\n• ID: `{id}`\n• Status: {status}",
+    assetFailed: "⚠️ Ordem rejeitada: {reason}",
+    assetFailedGeneric: "⚠️ Não foi possível enviar a ordem. Tente novamente em instantes."
   }
 };
 
@@ -357,7 +506,6 @@ if (greetingLanguages[greeting]) {
   );
 }
 
-
   // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking
   const langMatch =
     token.match(/^LANG[_ ](EN|ES|PT)$/) ||
@@ -384,9 +532,10 @@ if (greetingLanguages[greeting]) {
 
   const dict = LANGUAGES[lang];
   const f = FLOW[lang];
-
-  // 3. Global keywords, valid from any step
+  
+    // 3. Global keywords, valid from any step
   if (["MENU", "HI", "HELLO", "HOLA", "OI"].includes(token)) {
+    clearTrade(session);
     session.step = "MENU";
     await saveSession(phone, session, env);
     return sendMainMenu(phone, lang, env, dict.welcome + "\n\n" + f.menuPrompt);
@@ -416,27 +565,269 @@ if (greetingLanguages[greeting]) {
       }
       session.step = "MENU";
       await saveSession(phone, session, env);
-      await executeMarketLookupChain(phone, ticker, dict, env, lang);
+      await executeMarketLookup(phone, ticker, dict, env, lang);
       return sendMainMenu(phone, lang, env, f.menuPrompt);
     }
 
-    case "TRADE_CHOOSE": {
-      if (token === "TRADE_BACK") {
+       case "TRADE_CHOOSE": {
+      if (token === "TRADE_BACK" || token === "CANCEL") {
+        clearTrade(session);
         session.step = "MENU";
         await saveSession(phone, session, env);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
-      if (token === "TRADE_ASSET" || token === "TRADE_COVERED_CALL") {
-        session.step = token === "TRADE_ASSET" ? "ASSET_TICKER" : "COVERED_CALL_START";
+      if (token === "TRADE_ASSET") {
+        clearTrade(session);
+        session.trade = { side: null };
+        session.step = "ASSET_SIDE";
+        await saveSession(phone, session, env);
+        return sendAssetSideMenu(phone, lang, env);
+      }
+      if (token === "TRADE_COVERED_CALL") {
+        session.step = "COVERED_CALL_START";
         await saveSession(phone, session, env);
         return sendWhatsApp(phone, f.tradeStub, env);
       }
       return sendTradeMenu(phone, lang, env);
     }
 
-    case "ASSET_TICKER":
+    case "ASSET_SIDE": {
+      if (token === "CANCEL" || token === "TRADE_BACK") {
+        clearTrade(session);
+        session.step = "TRADE_CHOOSE";
+        await saveSession(phone, session, env);
+        return sendTradeMenu(phone, lang, env);
+      }
+      if (token === "BUY" || token === "SELL") {
+        session.trade.side = token === "BUY" ? "buy" : "sell";
+        session.step = "ASSET_TICKER";
+        await saveSession(phone, session, env);
+        return sendWhatsApp(phone, f.assetAskTicker, env);
+      }
+      return sendAssetSideMenu(phone, lang, env);
+    }
+
+    case "ASSET_TICKER": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      const ticker = token.replace(/^(CHECK|PRICE)\s+/, "").split(/\s+/)[0];
+      if (!/^[A-Z.]{1,5}$/.test(ticker)) {
+        return sendWhatsApp(phone, f.assetInvalidTicker, env);
+      }
+
+      const link = await getLink(phone, env);
+      if (!link) {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendLinkPrompt(phone, lang, env);
+      }
+
+      let creds;
+      try {
+        creds = await decryptCredentials(link.enc, env);
+      } catch (err) {
+        console.error("Decrypt failed:", err);
+        return sendWhatsApp(phone, f.assetFetchFailed, env);
+      }
+
+      // Validate the symbol is tradable
+      try {
+        await alpacaGetAsset(creds, link.mode, ticker);
+      } catch (err) {
+        if (err?.kind === "AUTH") {
+          clearTrade(session);
+          session.step = "MENU";
+          await saveSession(phone, session, env);
+          return sendWhatsApp(phone, f.authRejected, env);
+        }
+        if (err?.kind === "NOT_FOUND") {
+          return sendWhatsApp(phone, f.assetInvalidTicker, env);
+        }
+        return sendWhatsApp(phone, f.assetFetchFailed, env);
+      }
+
+      // Sell path: confirm a position exists and store max qty
+      if (session.trade.side === "sell") {
+        try {
+          const pos = await alpacaGetPosition(creds, link.mode, ticker);
+          if (!pos || !pos.qty || Number(pos.qty) <= 0) {
+            return sendWhatsApp(phone, f.assetNoPosition.replace("{ticker}", ticker), env);
+          }
+          session.trade.ticker = ticker;
+          session.trade.maxQty = Math.floor(Number(pos.qty));
+          session.step = "ASSET_QTY_SELL";
+          await saveSession(phone, session, env);
+          return sendWhatsApp(phone, f.assetAskQtySell, env);
+        } catch (err) {
+          if (err?.kind === "NOT_FOUND") {
+            return sendWhatsApp(phone, f.assetNoPosition.replace("{ticker}", ticker), env);
+          }
+          return sendWhatsApp(phone, f.assetFetchFailed, env);
+        }
+      }
+
+      // Buy path: choose shares vs amount
+      session.trade.ticker = ticker;
+      session.step = "ASSET_QTY_MODE";
+      await saveSession(phone, session, env);
+      return sendAssetQtyModeMenu(phone, lang, env);
+    }
+
+    case "ASSET_QTY_MODE": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      if (token === "BUY_SHARES" || token === "SHARES") {
+        session.trade.qtyMode = "shares";
+        session.step = "ASSET_QTY_SHARES";
+        await saveSession(phone, session, env);
+        return sendWhatsApp(phone, f.assetAskQtyShares, env);
+      }
+      if (token === "BUY_AMOUNT" || token === "AMOUNT") {
+        session.trade.qtyMode = "amount";
+        session.step = "ASSET_QTY_AMOUNT";
+        await saveSession(phone, session, env);
+        return sendWhatsApp(phone, f.assetAskQtyAmount, env);
+      }
+      return sendAssetQtyModeMenu(phone, lang, env);
+    }
+
+    case "ASSET_QTY_SHARES":
+    case "ASSET_QTY_SELL": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      const maxMode = session.step === "ASSET_QTY_SELL" && token === "MAX";
+      let qty = null;
+      if (maxMode) {
+        qty = session.trade.maxQty;
+      } else {
+        const cleaned = token.replace(/[^0-9]/g, "");
+        if (cleaned && /^\d+$/.test(cleaned)) qty = parseInt(cleaned, 10);
+      }
+      if (!qty || qty <= 0) {
+        return sendWhatsApp(phone, f.assetInvalidQty, env);
+      }
+      if (session.step === "ASSET_QTY_SELL" && qty > session.trade.maxQty) {
+        return sendWhatsApp(phone, f.assetInvalidQty, env);
+      }
+      session.trade.qtyMode = session.trade.qtyMode || "shares";
+      session.trade.qtyRaw = qty;
+      session.trade.qty = qty;
+      session.step = "ASSET_ORDER_TYPE";
+      await saveSession(phone, session, env);
+      return sendAssetOrderTypeMenu(phone, lang, env);
+    }
+
+    case "ASSET_QTY_AMOUNT": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      // Accept "1000", "$1000", "1000 USD", "1000 dollars"
+      const match = token.replace(/,/g, "").match(/\$?\s*(\d+(?:\.\d{1,2})?)/);
+      if (!match) return sendWhatsApp(phone, f.assetInvalidAmount, env);
+      const amount = parseFloat(match[1]);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return sendWhatsApp(phone, f.assetInvalidAmount, env);
+      }
+      session.trade.qtyMode = "amount";
+      session.trade.qtyRaw = amount;
+      session.step = "ASSET_ORDER_TYPE";
+      await saveSession(phone, session, env);
+      return sendAssetOrderTypeMenu(phone, lang, env);
+    }
+
+    case "ASSET_ORDER_TYPE": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      if (token === "MARKET") {
+        session.trade.orderType = "market";
+        session.trade.limitPrice = null;
+        return buildAndShowPreview(phone, session, lang, env);
+      }
+      if (token === "LIMIT") {
+        session.trade.orderType = "limit";
+        session.step = "ASSET_LIMIT_PRICE";
+        await saveSession(phone, session, env);
+        return sendWhatsApp(phone, f.assetAskLimit, env);
+      }
+      return sendAssetOrderTypeMenu(phone, lang, env);
+    }
+
+    case "ASSET_LIMIT_PRICE": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      const cleaned = token.replace(/[$,]/g, "").trim();
+      const price = parseFloat(cleaned);
+      if (!Number.isFinite(price) || price <= 0) {
+        return sendWhatsApp(phone, f.assetInvalidLimit, env);
+      }
+      // ±50% band vs last trade
+      const last = await getLastPrice(session.trade.ticker, env);
+      if (last && (price > last * 1.5 || price < last * 0.5)) {
+        return sendWhatsApp(phone,
+          f.assetLimitOffBand.replace("${last}", last.toFixed(2)), env);
+      }
+      session.trade.limitPrice = price;
+      return buildAndShowPreview(phone, session, lang, env);
+    }
+
+    case "ASSET_CONFIRM": {
+      if (token === "CANCEL" || token === "ASSET_CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      if (token === "CONFIRM" || token === "ASSET_CONFIRM") {
+        // Expiry check
+        if (!session.trade?.confirmExpiresAt || Date.now() > session.trade.confirmExpiresAt) {
+          clearTrade(session);
+          session.step = "MENU";
+          await saveSession(phone, session, env);
+          await sendWhatsApp(phone, f.assetConfirmExpired, env);
+          return sendMainMenu(phone, lang, env, f.menuPrompt);
+        }
+        // Flip step BEFORE fetch — idempotency guard layer 2
+        session.step = "ASSET_SUBMITTING";
+        await saveSession(phone, session, env, 120);
+        await sendWhatsApp(phone, f.assetProcessing, env);
+        await submitTrade(phone, session, lang, env);
+        // submitTrade resets session and returns to menu itself
+        return;
+      }
+      // Any other input → re-show preview
+      return buildAndShowPreview(phone, session, lang, env, true);
+    }
+
+    case "ASSET_SUBMITTING": {
+      // Double-tap guard. Do not re-submit.
+      return sendWhatsApp(phone, f.assetProcessing, env);
+    }
+
     case "COVERED_CALL_START":
-      // Placeholders until the trade phase is designed
       session.step = "MENU";
       await saveSession(phone, session, env);
       return sendMainMenu(phone, lang, env, f.menuPrompt);
@@ -460,7 +851,7 @@ if (greetingLanguages[greeting]) {
       // Shortcut: "check NVDA" works from the menu too
       if (token.startsWith("CHECK ") || token.startsWith("PRICE ")) {
         const ticker = token.split(/\s+/)[1];
-        await executeMarketLookupChain(phone, ticker, dict, env, lang);
+        await executeMarketLookup(phone, ticker, dict, env, lang);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
 
@@ -514,13 +905,14 @@ async function loadSession(phone, env) {
   return { step: "LANG_PICK", lang: null };
 }
 
-async function saveSession(phone, session, env) {
+async function saveSession(phone, session, env, ttlSeconds = 60 * 60 * 24 * 30) {
   try {
-    await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 30 });
+    await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session), { expirationTtl: ttlSeconds });
   } catch (err) {
     console.error("KV write failed:", err);
   }
 }
+
 
 /* ============================================================
  * ACCOUNT BALANCE (per-user Alpaca keys)
@@ -593,10 +985,41 @@ function sendTradeMenu(phone, lang, env) {
   ], env);
 }
 
+function sendAssetSideMenu(phone, lang, env) {
+  const f = FLOW[lang];
+  return sendWhatsAppButtons(phone, f.assetAskSide, [
+    { id: "BUY", title: f.btnBuy },
+    { id: "SELL", title: f.btnSell },
+    { id: "CANCEL", title: f.btnBack }
+  ], env);
+}
+
+function sendAssetQtyModeMenu(phone, lang, env) {
+  const f = FLOW[lang];
+  return sendWhatsAppButtons(phone, f.assetAskQtyMode, [
+    { id: "BUY_SHARES", title: f.btnShares },
+    { id: "BUY_AMOUNT", title: f.btnAmount },
+    { id: "CANCEL", title: f.btnBack }
+  ], env);
+}
+
+function sendAssetOrderTypeMenu(phone, lang, env) {
+  const f = FLOW[lang];
+  return sendWhatsAppButtons(phone, f.assetAskOrderType, [
+    { id: "MARKET", title: f.btnMarket },
+    { id: "LIMIT", title: f.btnLimit },
+    { id: "CANCEL", title: f.btnBack }
+  ], env);
+}
+
 function fmtUSD(n, lang) {
   const locale = lang === "ES" ? "es-ES" : lang === "PT" ? "pt-BR" : "en-US";
   return new Intl.NumberFormat(locale, { style: "currency", currency: "USD" })
     .format(Number.isFinite(n) ? n : 0);
+}
+
+function clearTrade(session) {
+  session.trade = null;
 }
 
 /* ============================================================
@@ -672,9 +1095,246 @@ async function alpacaGetPositions(creds, mode) {
 }
 
 /* ============================================================
- * LIVE QUOTE AND OTM CALL LOOKUP (derivative capability, retained)
+ * ASSET ORDER FLOW
  * ============================================================ */
-async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
+async function alpacaGetAsset(creds, mode, symbol) {
+  const res = await fetch(alpacaBase(mode) + "/v2/assets/" + encodeURIComponent(symbol), {
+    headers: {
+      "APCA-API-KEY-ID": creds.keyId,
+      "APCA-API-SECRET-KEY": creds.secret,
+      "Accept": "application/json"
+    }
+  });
+  if (res.status === 401 || res.status === 403) throw new BrokerError("AUTH", res.status);
+  if (res.status === 404) throw new BrokerError("NOT_FOUND", 404);
+  if (!res.ok) throw new BrokerError("UPSTREAM", res.status);
+  const a = await res.json();
+  if (a.tradable === false) throw new BrokerError("NOT_FOUND", 404);
+  return a;
+}
+
+async function alpacaGetPosition(creds, mode, symbol) {
+  const res = await fetch(alpacaBase(mode) + "/v2/positions/" + encodeURIComponent(symbol), {
+    headers: {
+      "APCA-API-KEY-ID": creds.keyId,
+      "APCA-API-SECRET-KEY": creds.secret,
+      "Accept": "application/json"
+    }
+  });
+  if (res.status === 401 || res.status === 403) throw new BrokerError("AUTH", res.status);
+  if (res.status === 404) throw new BrokerError("NOT_FOUND", 404);
+  if (!res.ok) throw new BrokerError("UPSTREAM", res.status);
+  return res.json();
+}
+
+async function getLastPrice(ticker, env) {
+  try {
+    const url = "https://data.alpaca.markets/v2/stocks/" +
+      encodeURIComponent(ticker) + "/trades/latest?feed=iex";
+    const res = await fetch(url, { headers: serverAlpacaHeaders(env) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const p = parseFloat(data?.trade?.p);
+    return Number.isFinite(p) ? p : null;
+  } catch (err) {
+    console.error("Last price failed:", err?.message || err);
+    return null;
+  }
+}
+
+async function buildAndShowPreview(phone, session, lang, env, isRetry = false) {
+  const f = FLOW[lang];
+  const dict = LANGUAGES[lang];
+  const link = await getLink(phone, env);
+  if (!link) {
+    clearTrade(session);
+    session.step = "MENU";
+    await saveSession(phone, session, env);
+    return sendLinkPrompt(phone, lang, env);
+  }
+
+  let creds;
+  try {
+    creds = await decryptCredentials(link.enc, env);
+  } catch (err) {
+    return sendWhatsApp(phone, f.assetFailedGeneric, env);
+  }
+
+  // Resolve qty for amount mode
+  const lastPrice = await getLastPrice(session.trade.ticker, env);
+  const refPrice = session.trade.orderType === "limit"
+    ? session.trade.limitPrice
+    : lastPrice;
+
+  if (!refPrice || refPrice <= 0) {
+    return sendWhatsApp(phone, f.assetFetchFailed, env);
+  }
+
+  let resolvedQty;
+  if (session.trade.qtyMode === "amount") {
+    resolvedQty = Math.floor(session.trade.qtyRaw / refPrice);
+    if (resolvedQty < 1) {
+      return sendWhatsApp(phone,
+        f.assetQtyTooSmall.replace("${price}", refPrice.toFixed(2)), env);
+    }
+  } else {
+    resolvedQty = session.trade.qtyRaw;
+  }
+  session.trade.qty = resolvedQty;
+  session.trade.estPrice = refPrice;
+
+  // Generate client_order_id once
+  if (!session.trade.clientOrderId) {
+    session.trade.clientOrderId = "koku-" + crypto.randomUUID();
+  }
+  session.trade.confirmExpiresAt = Date.now() + 5 * 60 * 1000;
+
+  // Market closed warning?
+  const status = await getMarketStatus(alpacaBase(link.mode), serverAlpacaHeaders(env));
+  const marketWarn = status.isOpen ? "" : "\n\n" + f.assetConfirmMarketWarn;
+
+  const sideLabel = session.trade.side === "buy" ? f.btnBuy : f.btnSell;
+  const qtyLabel = resolvedQty + (resolvedQty === 1 ? " share" : " shares");
+  const estTotal = (refPrice * resolvedQty).toFixed(2);
+  const costLabel = session.trade.side === "buy" ? f.assetConfirmEstCost : f.assetConfirmEstProc;
+
+  let msg = f.assetConfirmTitle + "\n\n";
+  msg += "• *" + f.assetConfirmSide + ":* " + sideLabel + "\n";
+  msg += "• *" + f.assetConfirmSymbol + ":* " + session.trade.ticker + "\n";
+  msg += "• *" + f.assetConfirmQty + ":* " + qtyLabel + "\n";
+  msg += "• *" + f.assetConfirmType + ":* " +
+    (session.trade.orderType === "limit" ? f.btnLimit : f.btnMarket) + "\n";
+  if (session.trade.orderType === "limit") {
+    msg += "• *" + f.assetConfirmLimit + ":* $" + session.trade.limitPrice.toFixed(2) + "\n";
+  }
+  msg += "• *" + costLabel + ":* ~$" + estTotal + " (@" + refPrice.toFixed(2) + ")";
+  msg += marketWarn;
+  msg += "\n\n" + f.assetConfirmPrompt;
+
+  session.step = "ASSET_CONFIRM";
+  await saveSession(phone, session, env, 300);
+
+  return sendWhatsAppButtons(phone, msg, [
+    { id: "CONFIRM", title: f.btnConfirm },
+    { id: "CANCEL", title: f.btnCancel }
+  ], env);
+}
+
+async function submitTrade(phone, session, lang, env) {
+  const f = FLOW[lang];
+  const link = await getLink(phone, env);
+  if (!link) {
+    clearTrade(session);
+    session.step = "MENU";
+    await saveSession(phone, session, env);
+    return sendLinkPrompt(phone, lang, env);
+  }
+
+  let creds;
+  try {
+    creds = await decryptCredentials(link.enc, env);
+  } catch (err) {
+    clearTrade(session);
+    session.step = "MENU";
+    await saveSession(phone, session, env);
+    return sendWhatsApp(phone, f.assetFailedGeneric, env);
+  }
+
+  const body = {
+    symbol: session.trade.ticker,
+    qty: String(session.trade.qty),
+    side: session.trade.side,
+    type: session.trade.orderType,
+    time_in_force: "day",
+    client_order_id: session.trade.clientOrderId
+  };
+  if (session.trade.orderType === "limit") {
+    body.limit_price = session.trade.limitPrice.toFixed(2);
+  }
+
+  let order = null;
+  try {
+    const res = await fetch(alpacaBase(link.mode) + "/v2/orders", {
+      method: "POST",
+      headers: {
+        "APCA-API-KEY-ID": creds.keyId,
+        "APCA-API-SECRET-KEY": creds.secret,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendWhatsApp(phone, f.authRejected, env);
+      }
+      const reason = friendlyAlpacaError(payload, lang);
+      clearTrade(session);
+      session.step = "MENU";
+      await saveSession(phone, session, env);
+      await sendWhatsApp(phone, f.assetFailed.replace("{reason}", reason), env);
+      return sendMainMenu(phone, lang, env, f.menuPrompt);
+    }
+    order = payload;
+  } catch (err) {
+    console.error("Order submit failed:", err?.message || err);
+    clearTrade(session);
+    session.step = "MENU";
+    await saveSession(phone, session, env);
+    await sendWhatsApp(phone, f.assetFailedGeneric, env);
+    return sendMainMenu(phone, lang, env, f.menuPrompt);
+  }
+
+  clearTrade(session);
+  session.step = "MENU";
+  await saveSession(phone, session, env);
+
+  const statusLine = [order.status, order.filled_qty ? order.filled_qty + " filled" : null]
+    .filter(Boolean).join(" · ");
+  await sendWhatsApp(phone,
+    f.assetSubmitted.replace("{id}", order.id || "—").replace("{status}", statusLine || "accepted"),
+    env);
+  return sendMainMenu(phone, lang, env, f.menuPrompt);
+}
+
+function friendlyAlpacaError(payload, lang) {
+  const code = (payload?.code || "").toString();
+  const message = (payload?.message || "").toString();
+
+  // Common Alpaca rejections, mapped to plain language
+  if (code === 40310000 || /insufficient (buying power|qty)/i.test(message)) {
+    return lang === "ES" ? "fondos insuficientes"
+         : lang === "PT" ? "saldo insuficiente"
+         : "insufficient buying power";
+  }
+  if (code === 42210000 || /not tradable/i.test(message)) {
+    return lang === "ES" ? "símbolo no operable"
+         : lang === "PT" ? "símbolo não negociável"
+         : "symbol not tradable";
+  }
+  if (code === 40010001 || /client_order_id must be unique/i.test(message)) {
+    return lang === "ES" ? "orden ya enviada"
+         : lang === "PT" ? "ordem já enviada"
+         : "order already submitted";
+  }
+  if (/market is closed/i.test(message)) {
+    return lang === "ES" ? "mercado cerrado para este tipo de orden"
+         : lang === "PT" ? "mercado fechado para este tipo de ordem"
+         : "market closed for this order type";
+  }
+  // Fallback: last sentence of message, trimmed
+  const short = message.split(".")[0].slice(0, 120);
+  return short || "unknown error";
+}
+
+/* ============================================================
+ * LIVE QUOTE (bid / ask only)
+ * ============================================================ */
+async function executeMarketLookup(phone, ticker, dict, env, langCode) {
   if (!ticker || ticker.length > 5) {
     await sendWhatsApp(phone, dict.invalidTicker, env);
     return;
@@ -688,7 +1348,8 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
 
     const statusPromise = getMarketStatus(apiBase, authHeaders);
 
-    const stockUrl = "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) + "/quotes/latest?feed=iex";
+    const stockUrl = "https://data.alpaca.markets/v2/stocks/"
+      + encodeURIComponent(ticker) + "/quotes/latest?feed=iex";
     const stockRes = await fetch(stockUrl, { method: "GET", headers: authHeaders });
     if (!stockRes.ok) {
       await sendWhatsApp(phone, dict.feedError, env);
@@ -698,71 +1359,30 @@ async function executeMarketLookupChain(phone, ticker, dict, env, langCode) {
     const stockData = await stockRes.json();
     const status = await statusPromise;
     const footer = buildMarketFooter(dict, status, langCode);
-    const currentStockPrice = stockData?.quote?.bp || stockData?.quote?.ap || 0;
 
-    if (!currentStockPrice) {
-      await sendWhatsApp(phone, dict.emptyParams.replace("{ticker}", ticker) + "\n" + footer, env);
+    const bid = stockData?.quote?.bp || 0;
+    const ask = stockData?.quote?.ap || 0;
+
+    if (!bid && !ask) {
+      await sendWhatsApp(phone,
+        dict.emptyParams.replace("{ticker}", ticker) + "\n" + footer, env);
       return;
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const optionContractsUrl = apiBase + "/v2/options/contracts"
-      + "?underlying_symbols=" + encodeURIComponent(ticker)
-      + "&status=active&type=call"
-      + "&expiration_date_gte=" + today
-      + "&strike_price_gte=" + currentStockPrice
-      + "&limit=100";
-    const optionContractsRes = await fetch(optionContractsUrl, { method: "GET", headers: authHeaders });
+    let msg = dict.summaryTitle.replace("{ticker}", ticker) + "\n\n";
+    msg += "💵 *" + dict.bid + ":* " + fmtQuote(bid) + "\n";
+    msg += "💵 *" + dict.ask + ":* " + fmtQuote(ask);
+    msg += footer;
 
-    let otmCalls = [];
-    if (optionContractsRes.ok) {
-      const data = await optionContractsRes.json();
-      otmCalls = (data?.option_contracts || [])
-        .filter((c) => parseFloat(c.strike_price) > currentStockPrice)
-        .sort((a, b) =>
-          a.expiration_date.localeCompare(b.expiration_date) ||
-          parseFloat(a.strike_price) - parseFloat(b.strike_price)
-        )
-        .slice(0, 3);
-    }
-
-    let pricingDataMap = {};
-    if (otmCalls.length > 0) {
-      const symbolsList = otmCalls.map((c) => c.symbol).join(",");
-      const optionQuotesUrl = "https://data.alpaca.markets/v1beta1/options/quotes/latest?feed=indicative&symbols="
-        + encodeURIComponent(symbolsList);
-      const optionQuotesRes = await fetch(optionQuotesUrl, { method: "GET", headers: authHeaders });
-      if (optionQuotesRes.ok) {
-        const quotesPayload = await optionQuotesRes.json();
-        pricingDataMap = quotesPayload?.quotes || {};
-      } else {
-        console.error("Option quotes failed:", optionQuotesRes.status);
-      }
-    }
-
-    let messageBody = dict.summaryTitle.replace("{ticker}", ticker) + "\n\n";
-    messageBody += "💵 *" + dict.bid + ":* $" + currentStockPrice + "\n";
-    messageBody += "💵 *" + dict.ask + ":* $" + (stockData?.quote?.ap || 0) + "\n\n";
-    messageBody += dict.otmCalls + "\n";
-
-    if (otmCalls.length === 0) {
-      messageBody += dict.noContracts + "\n";
-    } else {
-      otmCalls.forEach((c) => {
-        const q = pricingDataMap[c.symbol];
-        const contractBid = q?.bp ? ("$" + q.bp) : "$0.00 (" + dict.noBid + ")";
-        messageBody += "\n• *Strike:* $" + c.strike_price + " | *Expiry:* " + c.expiration_date + "\n";
-        messageBody += "  _" + dict.contractBid + ":_ *" + contractBid + "*\n";
-        messageBody += "  _OSID:_ `" + c.symbol + "`\n";
-      });
-    }
-
-    messageBody += footer;
-    await sendWhatsApp(phone, messageBody, env);
+    await sendWhatsApp(phone, msg, env);
   } catch (err) {
-    console.error("Market analysis engine exception:", err?.message || err);
+    console.error("Market lookup exception:", err?.message || err);
     await sendWhatsApp(phone, dict.feedError, env);
   }
+}
+
+function fmtQuote(n) {
+  return Number.isFinite(n) && n > 0 ? "$" + n.toFixed(2) : "—";
 }
 
 /* ============================================================
