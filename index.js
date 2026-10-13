@@ -322,8 +322,41 @@ async function handleStateEngine(phone, input, env) {
 
   await ensureUser(phone, env);
 
-  const session = await loadSession(phone, env);
-  const lang = session.lang;
+  
+const session = await loadSession(phone, env);
+let lang = session.lang;
+
+// Detect greeting and select the corresponding language
+const greeting = token.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const greetingLanguages = {
+  HELLO: "EN",
+  HI: "EN",
+  HOLA: "ES",
+  OLA: "PT",
+  OI: "PT"
+};
+
+if (greetingLanguages[greeting]) {
+  lang = greetingLanguages[greeting];
+  session.lang = lang;
+  session.step = "MENU";
+  await saveSession(phone, session, env);
+
+  const linked = await getLink(phone, env);
+
+  if (!linked) {
+    return sendLinkPrompt(phone, lang, env);
+  }
+
+  return sendMainMenu(
+    phone,
+    lang,
+    env,
+    LANGUAGES[lang].welcome + "\n\n" + FLOW[lang].menuPrompt
+  );
+}
+
 
   // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking
   const langMatch =
