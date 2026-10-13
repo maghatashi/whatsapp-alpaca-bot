@@ -261,6 +261,44 @@ export default {
       }
     }
 
+    
+    // Public configuration for the KokuTrade landing page
+    if (url.pathname === "/public-config") {
+      const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      };
+
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: corsHeaders,
+        });
+      }
+
+      if (request.method !== "GET") {
+        return new Response("Method Not Allowed", {
+          status: 405,
+          headers: corsHeaders,
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          Whatsapp_Phone_Number: env.WHATSAPP_PUBLIC_NUMBER || "",
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+          },
+        }
+      );
+    }
+
     // 3. Broker linking page (opened in a browser from WhatsApp)
     if (url.pathname.startsWith("/link/")) {
       try {
