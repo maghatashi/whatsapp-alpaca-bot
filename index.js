@@ -122,7 +122,7 @@ const FLOW = {
     formButton: "Connect",
     formFootnote: "Keys are encrypted and never shown again. Use paper keys only.",
 
-    // === Buy/Sell flow (new) ===
+    // === Buy/Sell flow ===
     assetAskSide: "Buy or sell?",
     btnBuy: "Buy",
     btnSell: "Sell",
@@ -132,17 +132,26 @@ const FLOW = {
     assetNoPosition: "You don't hold *{ticker}*. Short selling isn't supported yet.",
     assetFetchFailed: "⚠️ Couldn't check that symbol right now. Try again shortly.",
 
-    assetAskQtyMode: "Buy by shares or by dollar amount?",
+    assetPositionTitle: "📊 *Your position in {ticker}*",
+    assetPosQty: "Quantity",
+    assetPosMarketValue: "Market value",
+    assetPosCostBasis: "Cost basis",
+    assetPosPL: "P/L",
+
+    assetAskQtyModeBuy: "Buy by shares or by dollar amount?",
+    assetAskQtyModeSell: "Sell by shares or by dollar amount?\n\nSend *MAX* to sell your full position.",
     btnShares: "Shares",
     btnAmount: "Amount",
 
     assetAskQtyShares: "How many shares?",
-    assetAskQtySell: "How many shares to sell? Send *MAX* to sell your full position.",
+    assetAskQtySellShares: "How many shares to sell? Send *MAX* for full position.",
     assetAskQtyAmount: "How much in dollars? (e.g. _1000_ or _$1000_)",
+    assetAskQtySellAmount: "How much in dollars to sell? (e.g. _500_ or _$500_)",
 
     assetInvalidQty: "Invalid quantity. Send a whole number of shares (e.g. _10_).",
     assetInvalidAmount: "Invalid amount. Send a dollar figure (e.g. _1000_).",
     assetQtyTooSmall: "That amount is below the price of one share (~${price}). Try a larger amount.",
+    assetSellAmountTooBig: "You can sell up to ~${max} ({qty} shares). Try a smaller amount.",
 
     assetAskOrderType: "Order type?",
     btnMarket: "Market",
@@ -211,7 +220,7 @@ const FLOW = {
     formButton: "Conectar",
     formFootnote: "Las claves se cifran y nunca se vuelven a mostrar. Usa solo claves paper.",
 
-    // === Buy/Sell flow (new) ===
+    // === Buy/Sell flow ===
     assetAskSide: "¿Comprar o vender?",
     btnBuy: "Comprar",
     btnSell: "Vender",
@@ -221,17 +230,26 @@ const FLOW = {
     assetNoPosition: "No tienes *{ticker}*. La venta en corto aún no está soportada.",
     assetFetchFailed: "⚠️ No se pudo verificar ese símbolo ahora. Intenta de nuevo.",
 
-    assetAskQtyMode: "¿Comprar por acciones o por monto en dólares?",
+    assetPositionTitle: "📊 *Tu posición en {ticker}*",
+    assetPosQty: "Cantidad",
+    assetPosMarketValue: "Valor de mercado",
+    assetPosCostBasis: "Costo base",
+    assetPosPL: "G/P",
+
+    assetAskQtyModeBuy: "¿Comprar por acciones o por monto en dólares?",
+    assetAskQtyModeSell: "¿Vender por acciones o por monto en dólares?\n\nEnvía *MAX* para vender toda tu posición.",
     btnShares: "Acciones",
     btnAmount: "Monto",
 
     assetAskQtyShares: "¿Cuántas acciones?",
-    assetAskQtySell: "¿Cuántas acciones vender? Envía *MAX* para vender toda tu posición.",
+    assetAskQtySellShares: "¿Cuántas acciones vender? Envía *MAX* para vender toda tu posición.",
     assetAskQtyAmount: "¿Cuánto en dólares? (ej: _1000_ o _$1000_)",
+    assetAskQtySellAmount: "¿Cuánto en dólares vender? (ej: _500_ o _$500_)",
 
     assetInvalidQty: "Cantidad inválida. Envía un número entero de acciones (ej: _10_).",
     assetInvalidAmount: "Monto inválido. Envía una cifra en dólares (ej: _1000_).",
     assetQtyTooSmall: "Ese monto es menor al precio de una acción (~${price}). Intenta un monto mayor.",
+    assetSellAmountTooBig: "Puedes vender hasta ~${max} ({qty} acciones). Intenta un monto menor.",
 
     assetAskOrderType: "¿Tipo de orden?",
     btnMarket: "Mercado",
@@ -300,7 +318,7 @@ const FLOW = {
     formButton: "Conectar",
     formFootnote: "As chaves são criptografadas e nunca mais são exibidas. Use apenas chaves paper.",
 
-    // === Buy/Sell flow (new) ===
+    // === Buy/Sell flow ===
     assetAskSide: "Comprar ou vender?",
     btnBuy: "Comprar",
     btnSell: "Vender",
@@ -310,17 +328,26 @@ const FLOW = {
     assetNoPosition: "Você não possui *{ticker}*. Venda a descoberto ainda não é suportada.",
     assetFetchFailed: "⚠️ Não foi possível verificar esse símbolo agora. Tente novamente.",
 
-    assetAskQtyMode: "Comprar por ações ou por valor em dólares?",
+    assetPositionTitle: "📊 *Sua posição em {ticker}*",
+    assetPosQty: "Quantidade",
+    assetPosMarketValue: "Valor de mercado",
+    assetPosCostBasis: "Custo base",
+    assetPosPL: "L/P",
+
+    assetAskQtyModeBuy: "Comprar por ações ou por valor em dólares?",
+    assetAskQtyModeSell: "Vender por ações ou por valor em dólares?\n\nEnvie *MAX* para vender toda a posição.",
     btnShares: "Ações",
     btnAmount: "Valor",
 
     assetAskQtyShares: "Quantas ações?",
-    assetAskQtySell: "Quantas ações vender? Envie *MAX* para vender toda a posição.",
+    assetAskQtySellShares: "Quantas ações vender? Envie *MAX* para vender toda a posição.",
     assetAskQtyAmount: "Quanto em dólares? (ex: _1000_ ou _$1000_)",
+    assetAskQtySellAmount: "Quanto em dólares vender? (ex: _500_ ou _$500_)",
 
     assetInvalidQty: "Quantidade inválida. Envie um número inteiro de ações (ex: _10_).",
     assetInvalidAmount: "Valor inválido. Envie um número em dólares (ex: _1000_).",
     assetQtyTooSmall: "Esse valor é menor que o preço de uma ação (~${price}). Tente um valor maior.",
+    assetSellAmountTooBig: "Você pode vender até ~${max} ({qty} ações). Tente um valor menor.",
 
     assetAskOrderType: "Tipo de ordem?",
     btnMarket: "Mercado",
@@ -410,7 +437,6 @@ export default {
       }
     }
 
-    
     // Public configuration for the KokuTrade landing page
     if (url.pathname === "/public-config") {
       const corsHeaders = {
@@ -471,40 +497,39 @@ async function handleStateEngine(phone, input, env) {
 
   await ensureUser(phone, env);
 
-  
-const session = await loadSession(phone, env);
-let lang = session.lang;
+  const session = await loadSession(phone, env);
+  let lang = session.lang;
 
-// Detect greeting and select the corresponding language
-const greeting = token.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Detect greeting and select the corresponding language
+  const greeting = token.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const greetingLanguages = {
-  HELLO: "EN",
-  HI: "EN",
-  HOLA: "ES",
-  OLA: "PT",
-  OI: "PT"
-};
+  const greetingLanguages = {
+    HELLO: "EN",
+    HI: "EN",
+    HOLA: "ES",
+    OLA: "PT",
+    OI: "PT"
+  };
 
-if (greetingLanguages[greeting]) {
-  lang = greetingLanguages[greeting];
-  session.lang = lang;
-  session.step = "MENU";
-  await saveSession(phone, session, env);
+  if (greetingLanguages[greeting]) {
+    lang = greetingLanguages[greeting];
+    session.lang = lang;
+    session.step = "MENU";
+    await saveSession(phone, session, env);
 
-  const linked = await getLink(phone, env);
+    const linked = await getLink(phone, env);
 
-  if (!linked) {
-    return sendLinkPrompt(phone, lang, env);
+    if (!linked) {
+      return sendLinkPrompt(phone, lang, env);
+    }
+
+    return sendMainMenu(
+      phone,
+      lang,
+      env,
+      LANGUAGES[lang].welcome + "\n\n" + FLOW[lang].menuPrompt
+    );
   }
-
-  return sendMainMenu(
-    phone,
-    lang,
-    env,
-    LANGUAGES[lang].welcome + "\n\n" + FLOW[lang].menuPrompt
-  );
-}
 
   // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking
   const langMatch =
@@ -532,8 +557,8 @@ if (greetingLanguages[greeting]) {
 
   const dict = LANGUAGES[lang];
   const f = FLOW[lang];
-  
-    // 3. Global keywords, valid from any step
+
+  // 3. Global keywords, valid from any step
   if (["MENU", "HI", "HELLO", "HOLA", "OI"].includes(token)) {
     clearTrade(session);
     session.step = "MENU";
@@ -569,7 +594,7 @@ if (greetingLanguages[greeting]) {
       return sendMainMenu(phone, lang, env, f.menuPrompt);
     }
 
-       case "TRADE_CHOOSE": {
+    case "TRADE_CHOOSE": {
       if (token === "TRADE_BACK" || token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
@@ -651,31 +676,68 @@ if (greetingLanguages[greeting]) {
         return sendWhatsApp(phone, f.assetFetchFailed, env);
       }
 
-      // Sell path: confirm a position exists and store max qty
+      // Sell path: fetch position + quote, show summary, then mode menu
       if (session.trade.side === "sell") {
+        let pos;
         try {
-          const pos = await alpacaGetPosition(creds, link.mode, ticker);
-          if (!pos || !pos.qty || Number(pos.qty) <= 0) {
-            return sendWhatsApp(phone, f.assetNoPosition.replace("{ticker}", ticker), env);
-          }
-          session.trade.ticker = ticker;
-          session.trade.maxQty = Math.floor(Number(pos.qty));
-          session.step = "ASSET_QTY_SELL";
-          await saveSession(phone, session, env);
-          return sendWhatsApp(phone, f.assetAskQtySell, env);
+          pos = await alpacaGetPosition(creds, link.mode, ticker);
         } catch (err) {
           if (err?.kind === "NOT_FOUND") {
             return sendWhatsApp(phone, f.assetNoPosition.replace("{ticker}", ticker), env);
           }
           return sendWhatsApp(phone, f.assetFetchFailed, env);
         }
+        const qty = Math.floor(Number(pos?.qty || 0));
+        if (!qty || qty <= 0) {
+          return sendWhatsApp(phone, f.assetNoPosition.replace("{ticker}", ticker), env);
+        }
+
+        const marketValue = parseFloat(pos.market_value) || 0;
+        const costBasis = parseFloat(pos.cost_basis) || 0;
+        const pl = parseFloat(pos.unrealized_pl) || 0;
+        const plpc = parseFloat(pos.unrealized_plpc) || 0;
+
+        // Fetch current bid/ask for display
+        let bid = 0, ask = 0;
+        try {
+          const qres = await fetch(
+            "https://data.alpaca.markets/v2/stocks/" + encodeURIComponent(ticker) +
+            "/quotes/latest?feed=iex",
+            { headers: serverAlpacaHeaders(env) }
+          );
+          if (qres.ok) {
+            const q = await qres.json();
+            bid = q?.quote?.bp || 0;
+            ask = q?.quote?.ap || 0;
+          }
+        } catch (_) { /* non-fatal */ }
+
+        const sign = pl >= 0 ? "+" : "-";
+        const plAbs = Math.abs(pl).toFixed(2);
+        const plpcAbs = (Math.abs(plpc) * 100).toFixed(2);
+
+        let summary = f.assetPositionTitle.replace("{ticker}", ticker) + "\n\n";
+        summary += "• *" + f.assetPosQty + ":* " + qty + "\n";
+        summary += "• *" + dict.bid + ":* " + fmtQuote(bid) + "\n";
+        summary += "• *" + dict.ask + ":* " + fmtQuote(ask) + "\n";
+        summary += "• *" + f.assetPosMarketValue + ":* " + fmtUSD(marketValue, lang) + "\n";
+        summary += "• *" + f.assetPosCostBasis + ":* " + fmtUSD(costBasis, lang) + "\n";
+        summary += "• *" + f.assetPosPL + ":* " + sign + "$" + plAbs + " (" + sign + plpcAbs + "%)";
+
+        await sendWhatsApp(phone, summary, env);
+
+        session.trade.ticker = ticker;
+        session.trade.maxQty = qty;
+        session.step = "ASSET_QTY_MODE";
+        await saveSession(phone, session, env);
+        return sendAssetQtyModeMenu(phone, lang, env, session.trade.side);
       }
 
-      // Buy path: choose shares vs amount
+      // Buy path: straight to mode menu (no summary)
       session.trade.ticker = ticker;
       session.step = "ASSET_QTY_MODE";
       await saveSession(phone, session, env);
-      return sendAssetQtyModeMenu(phone, lang, env);
+      return sendAssetQtyModeMenu(phone, lang, env, session.trade.side);
     }
 
     case "ASSET_QTY_MODE": {
@@ -685,44 +747,60 @@ if (greetingLanguages[greeting]) {
         await saveSession(phone, session, env);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
-      if (token === "BUY_SHARES" || token === "SHARES") {
+      const side = session.trade.side;
+      if (token === "QTY_SHARES" || token === "SHARES") {
         session.trade.qtyMode = "shares";
-        session.step = "ASSET_QTY_SHARES";
+        session.step = side === "sell" ? "ASSET_QTY_SELL_SHARES" : "ASSET_QTY_SHARES";
         await saveSession(phone, session, env);
-        return sendWhatsApp(phone, f.assetAskQtyShares, env);
+        return sendWhatsApp(phone,
+          side === "sell" ? f.assetAskQtySellShares : f.assetAskQtyShares, env);
       }
-      if (token === "BUY_AMOUNT" || token === "AMOUNT") {
+      if (token === "QTY_AMOUNT" || token === "AMOUNT") {
         session.trade.qtyMode = "amount";
-        session.step = "ASSET_QTY_AMOUNT";
+        session.step = side === "sell" ? "ASSET_QTY_SELL_AMOUNT" : "ASSET_QTY_AMOUNT";
         await saveSession(phone, session, env);
-        return sendWhatsApp(phone, f.assetAskQtyAmount, env);
+        return sendWhatsApp(phone,
+          side === "sell" ? f.assetAskQtySellAmount : f.assetAskQtyAmount, env);
       }
-      return sendAssetQtyModeMenu(phone, lang, env);
+      return sendAssetQtyModeMenu(phone, lang, env, side);
     }
 
-    case "ASSET_QTY_SHARES":
-    case "ASSET_QTY_SELL": {
+    case "ASSET_QTY_SHARES": {
       if (token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
         await saveSession(phone, session, env);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
-      const maxMode = session.step === "ASSET_QTY_SELL" && token === "MAX";
-      let qty = null;
+      const cleaned = token.replace(/[^0-9]/g, "");
+      const qty = /^\d+$/.test(cleaned) ? parseInt(cleaned, 10) : 0;
+      if (!qty) return sendWhatsApp(phone, f.assetInvalidQty, env);
+      session.trade.qtyRaw = qty;
+      session.trade.qty = qty;
+      session.step = "ASSET_ORDER_TYPE";
+      await saveSession(phone, session, env);
+      return sendAssetOrderTypeMenu(phone, lang, env);
+    }
+
+    case "ASSET_QTY_SELL_SHARES": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      const maxMode = token === "MAX";
+      let qty = 0;
       if (maxMode) {
         qty = session.trade.maxQty;
       } else {
         const cleaned = token.replace(/[^0-9]/g, "");
-        if (cleaned && /^\d+$/.test(cleaned)) qty = parseInt(cleaned, 10);
+        qty = /^\d+$/.test(cleaned) ? parseInt(cleaned, 10) : 0;
       }
-      if (!qty || qty <= 0) {
+      if (!qty) return sendWhatsApp(phone, f.assetInvalidQty, env);
+      if (qty > session.trade.maxQty) {
         return sendWhatsApp(phone, f.assetInvalidQty, env);
       }
-      if (session.step === "ASSET_QTY_SELL" && qty > session.trade.maxQty) {
-        return sendWhatsApp(phone, f.assetInvalidQty, env);
-      }
-      session.trade.qtyMode = session.trade.qtyMode || "shares";
       session.trade.qtyRaw = qty;
       session.trade.qty = qty;
       session.step = "ASSET_ORDER_TYPE";
@@ -737,14 +815,46 @@ if (greetingLanguages[greeting]) {
         await saveSession(phone, session, env);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
-      // Accept "1000", "$1000", "1000 USD", "1000 dollars"
       const match = token.replace(/,/g, "").match(/\$?\s*(\d+(?:\.\d{1,2})?)/);
       if (!match) return sendWhatsApp(phone, f.assetInvalidAmount, env);
       const amount = parseFloat(match[1]);
       if (!Number.isFinite(amount) || amount <= 0) {
         return sendWhatsApp(phone, f.assetInvalidAmount, env);
       }
-      session.trade.qtyMode = "amount";
+      session.trade.qtyRaw = amount;
+      session.step = "ASSET_ORDER_TYPE";
+      await saveSession(phone, session, env);
+      return sendAssetOrderTypeMenu(phone, lang, env);
+    }
+
+    case "ASSET_QTY_SELL_AMOUNT": {
+      if (token === "CANCEL") {
+        clearTrade(session);
+        session.step = "MENU";
+        await saveSession(phone, session, env);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      const match = token.replace(/,/g, "").match(/\$?\s*(\d+(?:\.\d{1,2})?)/);
+      if (!match) return sendWhatsApp(phone, f.assetInvalidAmount, env);
+      const amount = parseFloat(match[1]);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return sendWhatsApp(phone, f.assetInvalidAmount, env);
+      }
+      // Resolve against current price to check against maxQty
+      const last = await getLastPrice(session.trade.ticker, env);
+      if (!last) return sendWhatsApp(phone, f.assetFetchFailed, env);
+      const wantQty = Math.floor(amount / last);
+      if (wantQty < 1) {
+        return sendWhatsApp(phone,
+          f.assetQtyTooSmall.replace("${price}", last.toFixed(2)), env);
+      }
+      if (wantQty > session.trade.maxQty) {
+        const maxDollars = (session.trade.maxQty * last).toFixed(2);
+        return sendWhatsApp(phone,
+          f.assetSellAmountTooBig
+            .replace("${max}", "$" + maxDollars)
+            .replace("{qty}", String(session.trade.maxQty)), env);
+      }
       session.trade.qtyRaw = amount;
       session.step = "ASSET_ORDER_TYPE";
       await saveSession(phone, session, env);
@@ -913,7 +1023,6 @@ async function saveSession(phone, session, env, ttlSeconds = 60 * 60 * 24 * 30) 
   }
 }
 
-
 /* ============================================================
  * ACCOUNT BALANCE (per-user Alpaca keys)
  * ============================================================ */
@@ -994,11 +1103,12 @@ function sendAssetSideMenu(phone, lang, env) {
   ], env);
 }
 
-function sendAssetQtyModeMenu(phone, lang, env) {
+function sendAssetQtyModeMenu(phone, lang, env, side) {
   const f = FLOW[lang];
-  return sendWhatsAppButtons(phone, f.assetAskQtyMode, [
-    { id: "BUY_SHARES", title: f.btnShares },
-    { id: "BUY_AMOUNT", title: f.btnAmount },
+  const prompt = side === "sell" ? f.assetAskQtyModeSell : f.assetAskQtyModeBuy;
+  return sendWhatsAppButtons(phone, prompt, [
+    { id: "QTY_SHARES", title: f.btnShares },
+    { id: "QTY_AMOUNT", title: f.btnAmount },
     { id: "CANCEL", title: f.btnBack }
   ], env);
 }
@@ -1048,7 +1158,7 @@ function serverAlpacaHeaders(env) {
 class BrokerError extends Error {
   constructor(kind, status) {
     super(kind + ":" + status);
-    this.kind = kind;     // "AUTH" | "UPSTREAM"
+    this.kind = kind;     // "AUTH" | "UPSTREAM" | "NOT_FOUND"
     this.status = status;
   }
 }
@@ -1144,7 +1254,6 @@ async function getLastPrice(ticker, env) {
 
 async function buildAndShowPreview(phone, session, lang, env, isRetry = false) {
   const f = FLOW[lang];
-  const dict = LANGUAGES[lang];
   const link = await getLink(phone, env);
   if (!link) {
     clearTrade(session);
@@ -1326,7 +1435,7 @@ function friendlyAlpacaError(payload, lang) {
          : lang === "PT" ? "mercado fechado para este tipo de ordem"
          : "market closed for this order type";
   }
-  // Fallback: last sentence of message, trimmed
+  // Fallback: first sentence of message, trimmed
   const short = message.split(".")[0].slice(0, 120);
   return short || "unknown error";
 }
@@ -1812,6 +1921,7 @@ async function postToMeta(payload, env, timeoutMs = 8000) {
     clearTimeout(timer);
   }
 }
+
 function sendWhatsApp(to, message, env) {
   return postToMeta({
     messaging_product: "whatsapp",
