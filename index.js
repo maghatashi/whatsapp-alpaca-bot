@@ -17,8 +17,7 @@ const DISCLAIMER_VERSION = "v1";
 
 const LANGUAGES = {
   EN: {
-    welcome: "🙌 Welcome to *KokuTrade - Your Investing Assistant*!\n\n👉 Text a ticker like *NVDA* to pull live data.\n👉 Text *lang* to change your language profile anytime.",    
-    langSaved: "✅ Preference updated to English!",
+    welcome: "✅ Thanks! *Welcome to KokuTrade — Your Investing Assistant.*\n\n👉 Tap a button below, or text a ticker like *NVDA* anytime to see the current market price.\n👉 Text *lang* to change your language profile anytime.",    langSaved: "✅ Preference updated to English!",
     invalidTicker: "❌ Asset code format invalid. Try: _check AAPL_",
     fetching: "🔍 Fetching live data chain metrics for {ticker}...",
     feedError: "⚠️ Underlying data matrix error. Confirm your credentials match up.",
@@ -49,7 +48,7 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Market Open* · closes 4:00 PM ET"
   },
   ES: {
-    welcome: "🙌 ¡Bienvenido a *KokuTrade - Tu Assistente de Inversiones*!\n\n👉 Envía un símbolo como *NVDA* para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",    
+    welcome: "✅ ¡Gracias! *Bienvenido a KokuTrade — Tu Asistente de Inversiones.*\n\n👉 Toca un botón abajo, o envía un símbolo como *NVDA* cuando quieras para ver el precio actual del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",    
     langSaved: "✅ ¡Preferencia actualizada a Español!",
     invalidTicker: "❌ Formato de activo inválido. Intenta: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
@@ -81,7 +80,7 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Mercado Abierto* · cierra 4:00 PM ET"
   },
   PT: {
-    welcome: "🙌 Bem-vindo ao *KokuTrade - Seu Centro de Comando*!\n\n👉 Envie um símbolo como *NVDA* para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",    
+    welcome: "✅ Obrigado! *Bem-vindo ao KokuTrade — Seu Assistente de Investimentos.*\n\n👉 Toque em um botão abaixo, ou envie um símbolo como *NVDA* a qualquer momento para ver o preço atual do mercado.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",    
     langSaved: "✅ Preferência atualizada para Português!",
     invalidTicker: "❌ Formato de ativo inválido. Tente: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
@@ -529,36 +528,55 @@ async function handleStateEngine(phone, input, env) {
   const token = (input.buttonId || input.text || "").trim().toUpperCase();
   console.log("inbound", { last4: phone.slice(-4), token: token.slice(0, 30) });
 
-  await ensureUser(phone, env);
+    await ensureUser(phone, env);
 
   const session = await loadSession(phone, env);
   let lang = session.lang;
 
-    // 0. Disclaimer gate — must accept before anything else
-  if (!(await hasAgreed(phone, env))) {
-    if (token === "AGREE") {
-      await recordAgreement(phone, env);
-      // fall through to normal flow with whatever language we have
-    } else if (token === "LANG_EN" || token === "LANG_ES" || token === "LANG_PT" ||
-               ["EN","ES","PT"].includes(token)) {
-      // Language pick while un-agreed: save language, re-show disclaimer in that language
-      const picked = token.replace("LANG_", "").replace("LANG ", "");
-      if (["EN","ES","PT"].includes(picked)) {
-        session.lang = picked;
+   // ============================================================
+  // 0. Disclaimer gate — 3 states:
+  //    a) no language yet  → show language picker
+  //    b) language, no agreement → show disclaimer
+  //    c) agreed → proceed
+  // ============================================================
+  const agreed = await hasAgreed(phone, env);
+
+  if (!agreed) {
+    // (a) No language — show picker, mark that we're mid-disclaimer
+    if (!session.lang) {
+      const pick = token.match(/^LANG[_ ](EN|ES|PT)$/);
+      if (pick) {
+        session.lang = pick[1];
+        session.step = "DISCLAIMER_PENDING";
         await saveSession(phone, session, env);
+        return sendDisclaimer(phone, session.lang, env);
       }
-      return sendDisclaimer(phone, session.lang || "EN", env);
-    } else if (!session.lang) {
-      // No language yet — show language picker first
       session.step = "LANG_PICK";
       await saveSession(phone, session, env);
       return sendLanguageMenu(phone, env);
+    }
+
+    // (b) Language known, awaiting agreement
+    if (token === "AGREE") {
+      await recordAgreement(phone, env);
+      // fall through with session.lang set → welcome
+    } else if (token === "LANG_EN" || token === "LANG_ES" || token === "LANG_PT") {
+      // User changed language while at the disclaimer — save and re-show
+      const picked = token.replace("LANG_", "");
+      session.lang = picked;
+      await saveSession(phone, session, env);
+      return sendDisclaimer(phone, session.lang, env);
     } else {
+      // Any other input → warn and re-show
+      const t = LANGUAGES[session.lang] || LANGUAGES.EN;
+      await sendWhatsApp(phone, t.disclaimerNeeded, env);
       return sendDisclaimer(phone, session.lang, env);
     }
   }
 
-  // Detect greeting and select the corresponding language
+  // ============================================================
+  // Greeting — quick path to pick a language from scratch
+  // ============================================================
   const greeting = token.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   const greetingLanguages = {
@@ -589,13 +607,23 @@ async function handleStateEngine(phone, input, env) {
     );
   }
 
-  // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking
+    // 1. Language choice: button ID, "LANG EN", or bare "EN" while picking.
+  //    If we're mid-disclaimer, save lang + show disclaimer (no welcome yet).
   const langMatch =
     token.match(/^LANG[_ ](EN|ES|PT)$/) ||
     (session.step === "LANG_PICK" && token.match(/^(EN|ES|PT)$/));
 
   if (langMatch) {
     session.lang = langMatch[1];
+
+    if (!agreed) {
+      // Still inside the disclaimer gate
+      session.step = "DISCLAIMER_PENDING";
+      await saveSession(phone, session, env);
+      return sendDisclaimer(phone, session.lang, env);
+    }
+
+    // Already agreed — normal language switch from menu
     session.step = "MENU";
     await saveSession(phone, session, env);
     await sendWhatsApp(phone, LANGUAGES[session.lang].langSaved, env);
@@ -606,7 +634,7 @@ async function handleStateEngine(phone, input, env) {
       LANGUAGES[session.lang].welcome + "\n\n" + FLOW[session.lang].menuPrompt);
   }
 
-  // 2. First contact, or user asks to change language
+  // 2. First contact, or user asks to change language (post-agreement)
   if (!lang || token === "LANG") {
     session.step = "LANG_PICK";
     await saveSession(phone, session, env);
