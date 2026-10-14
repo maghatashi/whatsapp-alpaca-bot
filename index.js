@@ -1,5 +1,5 @@
 /**
- * WhatsApp KokuTrader Trading Bot Engine
+ * WhatsApp KokuTrade Investment Bot Engine
  * Alpaca MVP. Storage split:
  *   D1 (DB):          users, encrypted broker keys (broker_links)
  *   KV (USER_SESSIONS): dialogue state, one-time link tokens, one-time codes, rate limits (all expire)
@@ -16,8 +16,7 @@ const TRADING_MODE_DEFAULT = "paper";
 
 const LANGUAGES = {
   EN: {
-    welcome: "🙌 Welcome to your *KokuTrader Trading Command Hub*!\n\n👉 Text *check [TICKER]* (e.g., _check NVDA_) to pull live data.\n👉 Text *lang* to change your language profile anytime.",
-    langSaved: "✅ Preference updated to English!",
+    welcome: "🙌 Welcome to *KokuTrade - Your Investing Assistant*!\n\n👉 Text a ticker like *NVDA* to pull live data.\n👉 Text *lang* to change your language profile anytime.",    langSaved: "✅ Preference updated to English!",
     invalidTicker: "❌ Asset code format invalid. Try: _check AAPL_",
     fetching: "🔍 Fetching live data chain metrics for {ticker}...",
     feedError: "⚠️ Underlying data matrix error. Confirm your credentials match up.",
@@ -37,8 +36,7 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Market Open* · closes 4:00 PM ET"
   },
   ES: {
-    welcome: "🙌 ¡Bienvenido a tu *KokuTrader Centro de Control*!\n\n👉 Envía *check [TICKER]* (ej: _check NVDA_) para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",
-    langSaved: "✅ ¡Preferencia actualizada a Español!",
+    welcome: "🙌 ¡Bienvenido a *KokuTrade - Tu Assistente de Inversiones*!\n\n👉 Envía un símbolo como *NVDA* para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",    langSaved: "✅ ¡Preferencia actualizada a Español!",
     invalidTicker: "❌ Formato de activo inválido. Intenta: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
     feedError: "⚠️ Error en la fuente de datos. Confirma tus credenciales de API.",
@@ -58,8 +56,7 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Mercado Abierto* · cierra 4:00 PM ET"
   },
   PT: {
-    welcome: "🙌 Bem-vindo ao seu *KokuTrader Centro de Comando*!\n\n👉 Envie *check [TICKER]* (ex: _check NVDA_) para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",
-    langSaved: "✅ Preferência atualizada para Português!",
+    welcome: "🙌 Bem-vindo ao *KokuTrade - Seu Centro de Comando*!\n\n👉 Envie um símbolo como *NVDA* para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",    langSaved: "✅ Preferência atualizada para Português!",
     invalidTicker: "❌ Formato de ativo inválido. Tente: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
     feedError: "⚠️ Erro na fonte de dados. Confirme suas credenciais de API.",
@@ -958,10 +955,14 @@ async function handleStateEngine(phone, input, env) {
         return sendTradeMenu(phone, lang, env);
       }
 
-      // Shortcut: "check NVDA" works from the menu too
+      // Shortcut: bare ticker ("NVDA") or "CHECK NVDA" / "PRICE NVDA"
       if (token.startsWith("CHECK ") || token.startsWith("PRICE ")) {
         const ticker = token.split(/\s+/)[1];
         await executeMarketLookup(phone, ticker, dict, env, lang);
+        return sendMainMenu(phone, lang, env, f.menuPrompt);
+      }
+      if (/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(token)) {
+        await executeMarketLookup(phone, token, dict, env, lang);
         return sendMainMenu(phone, lang, env, f.menuPrompt);
       }
 
