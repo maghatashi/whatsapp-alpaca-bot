@@ -13,15 +13,28 @@
 const GRAPH_API_VERSION = "v21.0";
 const MARKET_TZ = "America/New_York";
 const TRADING_MODE_DEFAULT = "paper";
+const DISCLAIMER_VERSION = "v1";
 
 const LANGUAGES = {
   EN: {
-    welcome: "🙌 Welcome to *KokuTrade - Your Investing Assistant*!\n\n👉 Text a ticker like *NVDA* to pull live data.\n👉 Text *lang* to change your language profile anytime.",    langSaved: "✅ Preference updated to English!",
+    welcome: "🙌 Welcome to *KokuTrade - Your Investing Assistant*!\n\n👉 Text a ticker like *NVDA* to pull live data.\n👉 Text *lang* to change your language profile anytime.",    
+    langSaved: "✅ Preference updated to English!",
     invalidTicker: "❌ Asset code format invalid. Try: _check AAPL_",
     fetching: "🔍 Fetching live data chain metrics for {ticker}...",
     feedError: "⚠️ Underlying data matrix error. Confirm your credentials match up.",
     emptyParams: "⚠️ Asset symbol *{ticker}* data returned empty parameters.",
     summaryTitle: "📈 *{ticker} Market Summary*",
+    disclaimerTitle: "⚠️ *Important — please read*",
+    disclaimerBody:
+      "*KokuTrader is software, not a licensed broker, dealer, or investment advisor.*\n\n" +
+      "We do not provide financial advice, recommendations, or trading strategies. " +
+      "We simply relay your instructions to your connected brokerage (Alpaca) and show you their responses.\n\n" +
+      "All trading decisions are yours. You are responsible for every order you place. " +
+      "Trading involves risk of loss. Past performance does not indicate future results.\n\n" +
+      "Your API keys are encrypted and never shown to us. You can revoke them at any time in your Alpaca dashboard.",
+    btnAgree: "I understand & agree",
+    disclaimerNeeded: "Please tap *Agree* to continue.",
+    disclaimerSaved: "✅ Thanks. You can update your preference anytime by typing *menu*.",
     bid: "Bid Price",
     ask: "Ask Price",
     contractBid: "Contract Bid",
@@ -36,12 +49,24 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Market Open* · closes 4:00 PM ET"
   },
   ES: {
-    welcome: "🙌 ¡Bienvenido a *KokuTrade - Tu Assistente de Inversiones*!\n\n👉 Envía un símbolo como *NVDA* para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",    langSaved: "✅ ¡Preferencia actualizada a Español!",
+    welcome: "🙌 ¡Bienvenido a *KokuTrade - Tu Assistente de Inversiones*!\n\n👉 Envía un símbolo como *NVDA* para ver datos del mercado.\n👉 Envía *lang* para cambiar de idioma en cualquier momento.",    
+    langSaved: "✅ ¡Preferencia actualizada a Español!",
     invalidTicker: "❌ Formato de activo inválido. Intenta: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
     feedError: "⚠️ Error en la fuente de datos. Confirma tus credenciales de API.",
     emptyParams: "⚠️ El símbolo *{ticker}* devolvió parámetros vacíos.",
     summaryTitle: "📈 *Resumen de Mercado: {ticker}*",
+    disclaimerTitle: "⚠️ *Importante — lee esto*",
+    disclaimerBody:
+      "*KokuTrader es software, no un bróker, dealer ni asesor de inversiones con licencia.*\n\n" +
+      "No brindamos asesoría financiera, recomendaciones ni estrategias de trading. " +
+      "Simplemente transmitimos tus instrucciones a tu bróker conectado (Alpaca) y te mostramos sus respuestas.\n\n" +
+      "Todas las decisiones de inversión son tuyas. Eres responsable de cada orden que colocas. " +
+      "Operar conlleva riesgo de pérdida. El desempeño pasado no indica resultados futuros.\n\n" +
+      "Tus claves de API están cifradas y nunca las vemos. Puedes revocarlas en cualquier momento desde tu panel de Alpaca.",
+    btnAgree: "Entiendo y acepto",
+    disclaimerNeeded: "Toca *Aceptar* para continuar.",
+    disclaimerSaved: "✅ Gracias. Puedes actualizar tu preferencia escribiendo *menu*.",
     bid: "Precio Compra (Bid)",
     ask: "Precio Venta (Ask)",
     contractBid: "Bid del Contrato",
@@ -56,12 +81,24 @@ const LANGUAGES = {
     marketOpenLine: "🟢 *Mercado Abierto* · cierra 4:00 PM ET"
   },
   PT: {
-    welcome: "🙌 Bem-vindo ao *KokuTrade - Seu Centro de Comando*!\n\n👉 Envie um símbolo como *NVDA* para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",    langSaved: "✅ Preferência atualizada para Português!",
+    welcome: "🙌 Bem-vindo ao *KokuTrade - Seu Centro de Comando*!\n\n👉 Envie um símbolo como *NVDA* para buscar dados ao vivo.\n👉 Envie *lang* para alterar o idioma a qualquer momento.",    
+    langSaved: "✅ Preferência atualizada para Português!",
     invalidTicker: "❌ Formato de ativo inválido. Tente: _check AAPL_",
     fetching: "🔍 Buscando métricas de mercado para {ticker}...",
     feedError: "⚠️ Erro na fonte de dados. Confirme suas credenciais de API.",
     emptyParams: "⚠️ O símbolo *{ticker}* retornou parâmetros vazios.",
     summaryTitle: "📈 *Resumo de Mercado: {ticker}*",
+    disclaimerTitle: "⚠️ *Importante — leia isto*",
+    disclaimerBody:
+      "*KokuTrader é software, não uma corretora, dealer ou consultoria de investimentos licenciada.*\n\n" +
+      "Não fornecemos consultoria financeira, recomendações ou estratégias de negociação. " +
+      "Apenas repassamos suas instruções à sua corretora conectada (Alpaca) e mostramos as respostas dela.\n\n" +
+      "Todas as decisões de investimento são suas. Você é responsável por cada ordem que envia. " +
+      "Negociar envolve risco de perda. O desempenho passado não indica resultados futuros.\n\n" +
+      "Suas chaves de API são criptografadas e nunca são vistas por nós. Você pode revogá-las a qualquer momento no painel da Alpaca.",
+    btnAgree: "Entendo e aceito",
+    disclaimerNeeded: "Toque em *Aceitar* para continuar.",
+    disclaimerSaved: "✅ Obrigado. Você pode atualizar sua preferência enviando *menu*.",
     bid: "Preço de Compra (Bid)",
     ask: "Preço de Venda (Ask)",
     contractBid: "Bid do Contrato",
@@ -147,8 +184,6 @@ const FLOW = {
 
     assetInvalidQty: "Invalid quantity. Send a whole number of shares (e.g. _10_).",
     assetInvalidAmount: "Invalid amount. Send a dollar figure (e.g. _1000_).",
-    assetQtyTooSmall: "That amount is below the price of one share (~${price}). Try a larger amount.",
-    assetSellAmountTooBig: "You can sell up to ~${max} ({qty} shares). Try a smaller amount.",
 
     assetAskOrderType: "Order type?",
     btnMarket: "Market",
@@ -162,6 +197,7 @@ const FLOW = {
     assetConfirmSide: "Side",
     assetConfirmSymbol: "Symbol",
     assetConfirmQty: "Quantity",
+    assetConfirmQtyNotionalSuffix: "Alpaca resolves shares",
     assetConfirmType: "Type",
     assetConfirmLimit: "Limit price",
     assetConfirmEstCost: "Est. cost",
@@ -171,6 +207,7 @@ const FLOW = {
     btnConfirm: "Confirm",
     btnCancel: "Cancel",
 
+    assetNotFractionable: "*{ticker}* only trades in whole shares. Please choose *Shares*.",
     assetConfirmExpired: "Preview expired. Send your order again.",
     assetProcessing: "⏳ Your order is being processed. One moment.",
     assetSubmitted: "✅ Order submitted.\n\n• ID: `{id}`\n• Status: {status}",
@@ -245,8 +282,6 @@ const FLOW = {
 
     assetInvalidQty: "Cantidad inválida. Envía un número entero de acciones (ej: _10_).",
     assetInvalidAmount: "Monto inválido. Envía una cifra en dólares (ej: _1000_).",
-    assetQtyTooSmall: "Ese monto es menor al precio de una acción (~${price}). Intenta un monto mayor.",
-    assetSellAmountTooBig: "Puedes vender hasta ~${max} ({qty} acciones). Intenta un monto menor.",
 
     assetAskOrderType: "¿Tipo de orden?",
     btnMarket: "Mercado",
@@ -260,6 +295,7 @@ const FLOW = {
     assetConfirmSide: "Lado",
     assetConfirmSymbol: "Símbolo",
     assetConfirmQty: "Cantidad",
+    assetConfirmQtyNotionalSuffix: "Alpaca calcula las acciones",
     assetConfirmType: "Tipo",
     assetConfirmLimit: "Precio límite",
     assetConfirmEstCost: "Costo est.",
@@ -269,6 +305,7 @@ const FLOW = {
     btnConfirm: "Confirmar",
     btnCancel: "Cancelar",
 
+    assetNotFractionable: "*{ticker}* solo se opera en acciones enteras. Elige *Acciones*.",
     assetConfirmExpired: "La vista previa expiró. Envía tu orden de nuevo.",
     assetProcessing: "⏳ Tu orden se está procesando. Un momento.",
     assetSubmitted: "✅ Orden enviada.\n\n• ID: `{id}`\n• Estado: {status}",
@@ -343,8 +380,6 @@ const FLOW = {
 
     assetInvalidQty: "Quantidade inválida. Envie um número inteiro de ações (ex: _10_).",
     assetInvalidAmount: "Valor inválido. Envie um número em dólares (ex: _1000_).",
-    assetQtyTooSmall: "Esse valor é menor que o preço de uma ação (~${price}). Tente um valor maior.",
-    assetSellAmountTooBig: "Você pode vender até ~${max} ({qty} ações). Tente um valor menor.",
 
     assetAskOrderType: "Tipo de ordem?",
     btnMarket: "Mercado",
@@ -358,6 +393,7 @@ const FLOW = {
     assetConfirmSide: "Lado",
     assetConfirmSymbol: "Símbolo",
     assetConfirmQty: "Quantidade",
+    assetConfirmQtyNotionalSuffix: "Alpaca calcula as ações",
     assetConfirmType: "Tipo",
     assetConfirmLimit: "Preço limite",
     assetConfirmEstCost: "Custo est.",
@@ -367,6 +403,7 @@ const FLOW = {
     btnConfirm: "Confirmar",
     btnCancel: "Cancelar",
 
+    assetNotFractionable: "*{ticker}* só negocia em ações inteiras. Escolha *Ações*.",
     assetConfirmExpired: "A prévia expirou. Envie sua ordem novamente.",
     assetProcessing: "⏳ Sua ordem está sendo processada. Um momento.",
     assetSubmitted: "✅ Ordem enviada.\n\n• ID: `{id}`\n• Status: {status}",
@@ -496,6 +533,30 @@ async function handleStateEngine(phone, input, env) {
 
   const session = await loadSession(phone, env);
   let lang = session.lang;
+
+    // 0. Disclaimer gate — must accept before anything else
+  if (!(await hasAgreed(phone, env))) {
+    if (token === "AGREE") {
+      await recordAgreement(phone, env);
+      // fall through to normal flow with whatever language we have
+    } else if (token === "LANG_EN" || token === "LANG_ES" || token === "LANG_PT" ||
+               ["EN","ES","PT"].includes(token)) {
+      // Language pick while un-agreed: save language, re-show disclaimer in that language
+      const picked = token.replace("LANG_", "").replace("LANG ", "");
+      if (["EN","ES","PT"].includes(picked)) {
+        session.lang = picked;
+        await saveSession(phone, session, env);
+      }
+      return sendDisclaimer(phone, session.lang || "EN", env);
+    } else if (!session.lang) {
+      // No language yet — show language picker first
+      session.step = "LANG_PICK";
+      await saveSession(phone, session, env);
+      return sendLanguageMenu(phone, env);
+    } else {
+      return sendDisclaimer(phone, session.lang, env);
+    }
+  }
 
   // Detect greeting and select the corresponding language
   const greeting = token.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -629,7 +690,7 @@ async function handleStateEngine(phone, input, env) {
       return sendAssetSideMenu(phone, lang, env);
     }
 
-    case "ASSET_TICKER": {
+        case "ASSET_TICKER": {
       if (token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
@@ -658,8 +719,9 @@ async function handleStateEngine(phone, input, env) {
       }
 
       // Validate the symbol is tradable
+      let asset;
       try {
-        await alpacaGetAsset(creds, link.mode, ticker);
+        asset = await alpacaGetAsset(creds, link.mode, ticker);
       } catch (err) {
         if (err?.kind === "AUTH") {
           clearTrade(session);
@@ -672,6 +734,9 @@ async function handleStateEngine(phone, input, env) {
         }
         return sendWhatsApp(phone, f.assetFetchFailed, env);
       }
+
+      session.trade.ticker = ticker;
+      session.trade.fractionable = asset.fractionable !== false;
 
       // Sell path: fetch position + quote, show summary, then mode menu
       if (session.trade.side === "sell") {
@@ -723,7 +788,6 @@ async function handleStateEngine(phone, input, env) {
 
         await sendWhatsApp(phone, summary, env);
 
-        session.trade.ticker = ticker;
         session.trade.maxQty = qty;
         session.step = "ASSET_QTY_MODE";
         await saveSession(phone, session, env);
@@ -731,13 +795,12 @@ async function handleStateEngine(phone, input, env) {
       }
 
       // Buy path: straight to mode menu (no summary)
-      session.trade.ticker = ticker;
       session.step = "ASSET_QTY_MODE";
       await saveSession(phone, session, env);
       return sendAssetQtyModeMenu(phone, lang, env, session.trade.side);
     }
 
-    case "ASSET_QTY_MODE": {
+           case "ASSET_QTY_MODE": {
       if (token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
@@ -753,6 +816,10 @@ async function handleStateEngine(phone, input, env) {
           side === "sell" ? f.assetAskQtySellShares : f.assetAskQtyShares, env);
       }
       if (token === "QTY_AMOUNT" || token === "AMOUNT") {
+        if (session.trade.fractionable === false) {
+          return sendWhatsApp(phone,
+            f.assetNotFractionable.replace("{ticker}", session.trade.ticker), env);
+        }
         session.trade.qtyMode = "amount";
         session.step = side === "sell" ? "ASSET_QTY_SELL_AMOUNT" : "ASSET_QTY_AMOUNT";
         await saveSession(phone, session, env);
@@ -824,7 +891,7 @@ async function handleStateEngine(phone, input, env) {
       return sendAssetOrderTypeMenu(phone, lang, env);
     }
 
-    case "ASSET_QTY_SELL_AMOUNT": {
+        case "ASSET_QTY_SELL_AMOUNT": {
       if (token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
@@ -837,21 +904,7 @@ async function handleStateEngine(phone, input, env) {
       if (!Number.isFinite(amount) || amount <= 0) {
         return sendWhatsApp(phone, f.assetInvalidAmount, env);
       }
-      // Resolve against current price to check against maxQty
-      const last = await getLastPrice(session.trade.ticker, env);
-      if (!last) return sendWhatsApp(phone, f.assetFetchFailed, env);
-      const wantQty = Math.floor(amount / last);
-      if (wantQty < 1) {
-        return sendWhatsApp(phone,
-          f.assetQtyTooSmall.replace("${price}", last.toFixed(2)), env);
-      }
-      if (wantQty > session.trade.maxQty) {
-        const maxDollars = (session.trade.maxQty * last).toFixed(2);
-        return sendWhatsApp(phone,
-          f.assetSellAmountTooBig
-            .replace("${max}", "$" + maxDollars)
-            .replace("{qty}", String(session.trade.maxQty)), env);
-      }
+      session.trade.qtyMode = "amount";
       session.trade.qtyRaw = amount;
       session.step = "ASSET_ORDER_TYPE";
       await saveSession(phone, session, env);
@@ -1022,6 +1075,23 @@ async function saveSession(phone, session, env, ttlSeconds = 60 * 60 * 24 * 30) 
   } catch (err) {
     console.error("KV write failed:", err);
   }
+}
+
+/* ============================================================
+ * DISCLAIMER AGREEMENT
+ * ============================================================ */
+
+async function hasAgreed(phone, env) {
+  const row = await env.DB.prepare(
+    "SELECT agreed_version FROM users WHERE phone = ?"
+  ).bind(phone).first();
+  return row?.agreed_version === DISCLAIMER_VERSION;
+}
+
+async function recordAgreement(phone, env) {
+  await env.DB.prepare(
+    "UPDATE users SET agreed_at = datetime('now'), agreed_version = ? WHERE phone = ?"
+  ).bind(DISCLAIMER_VERSION, phone).run();
 }
 
 /* ============================================================
@@ -1270,28 +1340,23 @@ async function buildAndShowPreview(phone, session, lang, env, isRetry = false) {
     return sendWhatsApp(phone, f.assetFailedGeneric, env);
   }
 
-  // Resolve qty for amount mode
-  const lastPrice = await getLastPrice(session.trade.ticker, env);
-  const refPrice = session.trade.orderType === "limit"
-    ? session.trade.limitPrice
-    : lastPrice;
-
-  if (!refPrice || refPrice <= 0) {
-    return sendWhatsApp(phone, f.assetFetchFailed, env);
-  }
-
-  let resolvedQty;
-  if (session.trade.qtyMode === "amount") {
-    resolvedQty = Math.floor(session.trade.qtyRaw / refPrice);
-    if (resolvedQty < 1) {
-      return sendWhatsApp(phone,
-        f.assetQtyTooSmall.replace("${price}", refPrice.toFixed(2)), env);
+  // For amount mode, price is not needed — Alpaca resolves notional internally.
+  // For shares mode, fetch last price for the estimate display.
+  let refPrice = null;
+  if (session.trade.qtyMode === "shares") {
+    refPrice = session.trade.orderType === "limit"
+      ? session.trade.limitPrice
+      : await getLastPrice(session.trade.ticker, env);
+    if (!refPrice || refPrice <= 0) {
+      return sendWhatsApp(phone, f.assetFetchFailed, env);
     }
+    session.trade.qty = session.trade.qtyRaw;
+    session.trade.estPrice = refPrice;
   } else {
-    resolvedQty = session.trade.qtyRaw;
+    // amount mode — the "quantity" IS the notional
+    session.trade.qty = null;      // not used for notional orders
+    session.trade.estPrice = null;
   }
-  session.trade.qty = resolvedQty;
-  session.trade.estPrice = refPrice;
 
   // Generate client_order_id once
   if (!session.trade.clientOrderId) {
@@ -1304,8 +1369,16 @@ async function buildAndShowPreview(phone, session, lang, env, isRetry = false) {
   const marketWarn = status.isOpen ? "" : "\n\n" + f.assetConfirmMarketWarn;
 
   const sideLabel = session.trade.side === "buy" ? f.btnBuy : f.btnSell;
-  const qtyLabel = resolvedQty + (resolvedQty === 1 ? " share" : " shares");
-  const estTotal = (refPrice * resolvedQty).toFixed(2);
+
+  let qtyLabel, estTotal;
+  if (session.trade.qtyMode === "amount") {
+    qtyLabel = "$" + session.trade.qtyRaw.toFixed(2) + " (" + f.assetConfirmQtyNotionalSuffix + ")";
+    estTotal = session.trade.qtyRaw.toFixed(2);
+  } else {
+    qtyLabel = session.trade.qty + (session.trade.qty === 1 ? " share" : " shares");
+    estTotal = (refPrice * session.trade.qty).toFixed(2);
+  }
+
   const costLabel = session.trade.side === "buy" ? f.assetConfirmEstCost : f.assetConfirmEstProc;
 
   let msg = f.assetConfirmTitle + "\n\n";
@@ -1317,7 +1390,10 @@ async function buildAndShowPreview(phone, session, lang, env, isRetry = false) {
   if (session.trade.orderType === "limit") {
     msg += "• *" + f.assetConfirmLimit + ":* $" + session.trade.limitPrice.toFixed(2) + "\n";
   }
-  msg += "• *" + costLabel + ":* ~$" + estTotal + " (@" + refPrice.toFixed(2) + ")";
+  msg += "• *" + costLabel + ":* ~$" + estTotal;
+  if (session.trade.qtyMode === "shares") {
+    msg += " (@" + refPrice.toFixed(2) + ")";
+  }
   msg += marketWarn;
   msg += "\n\n" + f.assetConfirmPrompt;
 
@@ -1350,14 +1426,20 @@ async function submitTrade(phone, session, lang, env) {
     return sendWhatsApp(phone, f.assetFailedGeneric, env);
   }
 
-  const body = {
+    const body = {
     symbol: session.trade.ticker,
-    qty: String(session.trade.qty),
     side: session.trade.side,
     type: session.trade.orderType,
     time_in_force: "day",
     client_order_id: session.trade.clientOrderId
   };
+
+  if (session.trade.qtyMode === "amount") {
+    body.notional = session.trade.qtyRaw.toFixed(2);
+  } else {
+    body.qty = String(session.trade.qty);
+  }
+
   if (session.trade.orderType === "limit") {
     body.limit_price = session.trade.limitPrice.toFixed(2);
   }
@@ -1435,6 +1517,16 @@ function friendlyAlpacaError(payload, lang) {
     return lang === "ES" ? "mercado cerrado para este tipo de orden"
          : lang === "PT" ? "mercado fechado para este tipo de ordem"
          : "market closed for this order type";
+  }
+  if (/fractional|notional/i.test(message) && /not (supported|allowed|available)/i.test(message)) {
+    return lang === "ES" ? "este activo no admite órdenes por monto en dólares; usa acciones"
+         : lang === "PT" ? "este ativo não aceita ordens por valor em dólares; use ações"
+         : "this asset doesn't support dollar-amount orders; use shares";
+  }
+  if (/notional/i.test(message) && /exceeds|insufficient/i.test(message)) {
+    return lang === "ES" ? "el monto supera lo que puedes operar"
+         : lang === "PT" ? "o valor excede o que você pode negociar"
+         : "amount exceeds what you can trade";
   }
   // Fallback: first sentence of message, trimmed
   const short = message.split(".")[0].slice(0, 120);
@@ -1828,6 +1920,14 @@ function linkFormPage(lang, notice) {
 </body>
 </html>`;
   return htmlPage(body, 200, true);
+}
+
+function sendDisclaimer(phone, lang, env) {
+  const t = LANGUAGES[lang] || LANGUAGES.EN;
+  const body = t.disclaimerTitle + "\n\n" + t.disclaimerBody;
+  return sendWhatsAppButtons(phone, body, [
+    { id: "AGREE", title: t.btnAgree }
+  ], env);
 }
 
 function htmlPage(content, status = 200, isDocument = false) {
