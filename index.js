@@ -536,6 +536,12 @@ async function handleStateEngine(phone, input, env) {
     await ensureUser(phone, env);
 
   const session = await loadSession(phone, env);
+  const msgTs = Number(input.timestamp || 0);
+  if (msgTs && session.lastTs && msgTs < session.lastTs) {
+    console.warn("Dropped out-of-order message", { step: session.step, token: token.slice(0, 30) });
+    return;
+  }
+  if (msgTs) session.lastTs = msgTs;
   let lang = session.lang;
 
    // ============================================================
@@ -670,7 +676,8 @@ if (token === "BUY" || token === "SELL") {
   session.trade = { side: token === "BUY" ? "buy" : "sell" };
   session.step = "ASSET_TICKER";
   await saveSession(phone, session, env);
-  return sendWhatsApp(phone, f.assetAskTicker, env);
+  const label = token === "BUY" ? f.btnBuy : f.btnSell;
+  return sendWhatsApp(phone, label + ": " + f.assetAskTicker, env);
 }
 
   // 4. Step router
