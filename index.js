@@ -1130,19 +1130,23 @@ async function deleteLink(phone, env) {
  * ============================================================ */
 async function loadSession(phone, env) {
   try {
-    const s = await env.USER_SESSIONS.get("sess:" + phone, { type: "json" });
-    if (s) return s;
+    const row = await env.DB.prepare("SELECT data FROM sessions WHERE phone = ?")
+      .bind(phone).first();
+    if (row?.data) return JSON.parse(row.data);
   } catch (err) {
-    console.error("KV read failed:", err);
+    console.error("Session read failed:", err);
   }
   return { step: "LANG_PICK", lang: null };
 }
 
 async function saveSession(phone, session, env, ttlSeconds = 60 * 60 * 24 * 30) {
   try {
-    await env.USER_SESSIONS.put("sess:" + phone, JSON.stringify(session), { expirationTtl: ttlSeconds });
+    await env.DB.prepare(
+      `INSERT INTO sessions (phone, data, updated_at) VALUES (?, ?, ?)
+       ON CONFLICT(phone) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`
+    ).bind(phone, JSON.stringify(session), Date.now()).run();
   } catch (err) {
-    console.error("KV write failed:", err);
+    console.error("Session write failed:", err);
   }
 }
 
