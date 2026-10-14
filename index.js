@@ -456,7 +456,12 @@ export default {
           userText = messageObj.button?.text || "";
         }
 
-        if (!userText && !buttonId) return new Response("OK", { status: 200 });
+               if (!userText && !buttonId) return new Response("OK", { status: 200 });
+
+        const messageId = messageObj.id;
+        if (messageId && await isDuplicateMessage(messageId, env)) {
+          return new Response("OK", { status: 200 });
+        }
 
         ctx.waitUntil(
           handleStateEngine(fromNumber, { text: userText, buttonId }, env).catch((err) => {
@@ -659,6 +664,15 @@ async function handleStateEngine(phone, input, env) {
     return sendWhatsApp(phone, f.disconnected, env);
   }
 
+  // Buy/Sell buttons only exist on the side-selection menu, so a tap
+// always starts the asset flow, even if the stored step was lost.
+if (token === "BUY" || token === "SELL") {
+  session.trade = { side: token === "BUY" ? "buy" : "sell" };
+  session.step = "ASSET_TICKER";
+  await saveSession(phone, session, env);
+  return sendWhatsApp(phone, f.assetAskTicker, env);
+}
+
   // 4. Step router
   switch (session.step) {
     case "LANG_PICK":
@@ -719,6 +733,11 @@ async function handleStateEngine(phone, input, env) {
     }
 
         case "ASSET_TICKER": {
+          if (!session.trade) {
+    session.step = "TRADE_CHOOSE";
+    await saveSession(phone, session, env);
+    return sendTradeMenu(phone, lang, env);
+  }
       if (token === "CANCEL") {
         clearTrade(session);
         session.step = "MENU";
@@ -1021,7 +1040,11 @@ async function handleStateEngine(phone, input, env) {
       return sendMainMenu(phone, lang, env, f.menuPrompt);
 
     case "MENU":
-    default: {
+   default: {
+      if (session.step !== "MENU") {
+        console.warn("State fallback to MENU", { step: session.step, token: token.slice(0, 30) });
+      }
+
       if (token === "MENU_BALANCE" || token === "1") return showBalance(phone, lang, env);
 
       if (token === "MENU_PRICES" || token === "2") {
@@ -1057,6 +1080,17 @@ async function handleStateEngine(phone, input, env) {
  * ============================================================ */
 async function ensureUser(phone, env) {
   await env.DB.prepare("INSERT OR IGNORE INTO users (phone) VALUES (?)").bind(phone).run();
+}
+
+async function isDuplicateMessage(id, env) {
+  const key = "msg:" + id;
+  try {
+    if (await env.USER_SESSIONS.get(key)) return true;
+    await env.USER_SESSIONS.put(key, "1", { expirationTtl: 600 });
+  } catch (err) {
+    console.error("Dedupe check failed:", err?.message || err);
+  }
+  return false;
 }
 
 async function getLink(phone, env) {
